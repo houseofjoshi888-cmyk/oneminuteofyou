@@ -3,30 +3,34 @@
 import { useEffect, useRef, useState } from "react";
 import type { InteractionFeatures } from "@/lib/analyzer";
 import { renderArtwork, renderConfigForHouse } from "@/lib/renderer";
-import { simulateParticles } from "@/lib/simulation";
+import { PREVIEW_SIMULATION, simulateParticles } from "@/lib/simulation";
 import { royalHouseFromWords } from "@/lib/houses";
 
 export function LivingRenderer({ words, features, onReady }: { words: [number, number, number, number]; features: InteractionFeatures; onReady?: (canvas: HTMLCanvasElement) => void }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [rendering, setRendering] = useState(true);
   const [living, setLiving] = useState(true);
+  const livingRef = useRef(true);
   useEffect(() => {
     const canvas = canvasRef.current; if (!canvas) return;
     const base = document.createElement("canvas");
-    const frame = simulateParticles(words, features);
-    renderArtwork(base, frame, { ...renderConfigForHouse(words, 1536), lineAlpha: .17, lineWidth: .38 });
+    const frame = simulateParticles(words, features, PREVIEW_SIMULATION);
+    renderArtwork(base, frame, { ...renderConfigForHouse(words, 1024), lineAlpha: .24, lineWidth: .55 });
     canvas.width = base.width; canvas.height = base.height;
     const ctx = canvas.getContext("2d"); if (!ctx) return;
     const house = royalHouseFromWords(words);
     const duration = 12_000;
-    let raf = 0; let active = true;
+    let raf = 0; let active = true; let lastFrame = -Infinity; let reportedReady = false;
     const draw = (now: number) => {
       if (!active) return;
+      raf = requestAnimationFrame(draw);
+      if (now - lastFrame < 33) return;
+      lastFrame = now;
       ctx.globalCompositeOperation = "source-over"; ctx.globalAlpha = 1; ctx.drawImage(base, 0, 0);
-      if (living) {
+      if (livingRef.current) {
         const cycle = (now % duration) / duration;
         ctx.globalCompositeOperation = "lighter";
-        for (let i = words[0] % 41; i < frame.tones.length; i += 97) {
+        for (let i = words[0] % 41; i < frame.tones.length; i += 211) {
           const phase = (cycle + ((i * 2654435761) >>> 0) / 4294967296) % 1;
           const pulse = Math.pow(Math.max(0, Math.sin(phase * Math.PI)), 12); if (pulse < .025) continue;
           const travel = .5 - .5 * Math.cos(phase * Math.PI * 2);
@@ -37,11 +41,11 @@ export function LivingRenderer({ words, features, onReady }: { words: [number, n
         }
         ctx.shadowBlur = 0; ctx.globalAlpha = 1;
       }
-      if (rendering) { setRendering(false); onReady?.(canvas); }
-      raf = requestAnimationFrame(draw);
+      if (!reportedReady) { reportedReady = true; setRendering(false); onReady?.(canvas); }
     };
     raf = requestAnimationFrame(draw);
     return () => { active = false; cancelAnimationFrame(raf); };
-  }, [words, features, living, onReady, rendering]);
-  return <div className="art-panel living-panel"><canvas ref={canvasRef} aria-label="Your deterministic living artwork" />{rendering && <div className="rendering">AWAKENING 100,000 PARTICLES</div>}<button className="living-toggle" onClick={() => setLiving(value => !value)}><span className={living ? "is-live" : ""} /> {living ? "LIVING · 12 SEC CYCLE" : "STILL PORTRAIT"}</button></div>;
+  }, [words, features, onReady]);
+  const toggleLiving = () => setLiving(value => { livingRef.current = !value; return !value; });
+  return <div className="art-panel living-panel"><canvas ref={canvasRef} aria-label="Your deterministic living artwork" />{rendering && <div className="rendering">PREPARING FAST PREVIEW</div>}<div className="preview-quality">18K LIVE PREVIEW · 100K FINAL</div><button className="living-toggle" onClick={toggleLiving}><span className={living ? "is-live" : ""} /> {living ? "LIVING · 12 SEC CYCLE" : "STILL PORTRAIT"}</button></div>;
 }

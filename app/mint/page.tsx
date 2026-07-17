@@ -23,7 +23,7 @@ export default function MintPage() {
   const [livingCanvas, setLivingCanvas] = useState<HTMLCanvasElement | null>(null);
   useEffect(() => { const stored = sessionStorage.getItem("one-minute-result"); if (!stored) return; const id = window.setTimeout(() => setResult(JSON.parse(stored) as Result), 0); return () => clearTimeout(id); }, []);
   const metadata = useMemo(() => result ? createMetadata(result.hash, result.features, DEFAULT_SIMULATION) : null, [result]);
-  const highRes = useCallback(() => { if (!result) return; setExporting(true); requestAnimationFrame(() => { const canvas = document.createElement("canvas"); const frame = simulateParticles(result.words, result.features, DEFAULT_SIMULATION); renderArtwork(canvas, frame, renderConfigForHouse(result.words)); exportPng(canvas, `one-minute-${result.hash.slice(0, 8)}-4096.png`); setExporting(false); }); }, [result]);
+  const highRes = useCallback(async () => { if (!result) return; setExporting(true); await new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))); const canvas = document.createElement("canvas"); const frame = simulateParticles(result.words, result.features, DEFAULT_SIMULATION); renderArtwork(canvas, frame, renderConfigForHouse(result.words)); exportPng(canvas, `one-minute-${result.hash.slice(0, 8)}-4096.png`); setExporting(false); }, [result]);
   const livingLoop = useCallback(async () => { if (!result || !livingCanvas) return; setRecordingLoop(true); try { await exportLivingLoop(livingCanvas, `one-minute-${result.hash.slice(0, 8)}-living.webm`); } finally { setRecordingLoop(false); } }, [result, livingCanvas]);
 
   if (!result) return <main className="result-page"><nav className="studio-nav"><Link className="brand" href="/">ONE MINUTE <i>OF</i> YOU</Link><WalletButton /></nav><section className="result-copy" style={{ maxWidth: 620, margin: "12vh auto" }}><p className="eyebrow"><span /> NO PORTRAIT FOUND</p><h2>Your minute<br /><em>awaits.</em></h2><p className="mint-note">Record a minute first. Your portrait and metadata stay only in this browser session.</p><Link className="primary-button" href="/generate">Begin recording <span>↗</span></Link></section></main>;
@@ -41,7 +41,7 @@ export default function MintPage() {
       <section className="result-copy">
         <p className="eyebrow"><span /> ONE MINUTE OF YOU · ROYAL HOUSES</p>
         <h2>{title}<br /><em>of {house.name}.</em></h2>
-        <p className="mint-note">Connect a wallet with RainbowKit, then keep your one-of-one artwork and standards-friendly metadata. An on-chain mint contract can be attached as the next collection step.</p>
+        <p className="mint-note">The live preview uses a fast deterministic subset to protect your device. Your exported 4096×4096 royal NFT always includes the full 100,000-particle simulation.</p>
         <div className="royal-house-card"><span className="house-gem">◆</span><div><small>ROYAL HOUSE</small><strong>{house.name}</strong><em>{house.motto}</em></div><b>{rarity.tier}<small>RANK {rarity.score}</small></b></div>
         <ProvenanceSeal hash={result.hash} primary={house.primary} secondary={house.secondary} />
         <article className="royal-chronicle"><small>THE ROYAL CHRONICLE · {chronicle.omen.toUpperCase()}</small><h3>{chronicle.title}</h3><p>{chronicle.legend}</p><blockquote>“{chronicle.decree}”</blockquote></article>
