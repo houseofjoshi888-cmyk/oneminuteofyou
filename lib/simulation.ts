@@ -4,7 +4,7 @@ import type { InteractionFeatures } from "./analyzer";
 export interface SimulationConfig { particleCount: number; steps: number; fieldScale: number; stepLength: number; turbulence: number; }
 export const DEFAULT_SIMULATION: SimulationConfig = { particleCount: 100_000, steps: 54, fieldScale: 3.2, stepLength: 0.0018, turbulence: 0.54 };
 export interface ParticleFrame { starts: Float32Array; ends: Float32Array; tones: Uint8Array; trace: Float32Array; taps: Float32Array; composition: number; }
-export const COMPOSITIONS = ["Solar Vortex", "Twin Bloom", "Silk Current", "Orbital Halo", "Drifting Nebula", "Touch Echo", "Rose Lattice", "Constellation Weave"] as const;
+export const COMPOSITIONS = ["Solar Vortex", "Twin Bloom", "Silk Current", "Orbital Halo", "Drifting Nebula", "Touch Echo", "Rose Lattice", "Constellation Weave", "Celestial Muse"] as const;
 
 export function simulateParticles(words: [number, number, number, number], features: InteractionFeatures, config: SimulationConfig = DEFAULT_SIMULATION): ParticleFrame {
   const random = mulberry32(mixWords(words));
@@ -22,7 +22,17 @@ export function simulateParticles(words: [number, number, number, number], featu
     const angle = random() * Math.PI * 2;
     const radius = Math.pow(random(), 0.67) * 0.46;
     let x: number, y: number;
-    if (composition === 1) {
+    if (composition === 8) {
+      if (random() < .34) {
+        const contour: [number, number][] = [[.46,.16],[.41,.23],[.4,.31],[.33,.37],[.29,.405],[.38,.42],[.34,.46],[.395,.485],[.42,.56],[.48,.66],[.55,.77]];
+        const position = random() * (contour.length - 1); const index = Math.floor(position); const amount = position - index; const next = Math.min(contour.length - 1, index + 1);
+        const px = contour[index][0] + (contour[next][0] - contour[index][0]) * amount; const py = contour[index][1] + (contour[next][1] - contour[index][1]) * amount;
+        const jitter = (random() - .5) * (.012 + features.pressureMean * .022); x = px + jitter; y = py + (random() - .5) * .012;
+      } else {
+        const hairAngle = angle + Math.sin(angle * 3 + phase) * .22; const hairRadius = .12 + Math.pow(random(), .7) * .31;
+        x = .57 + Math.cos(hairAngle) * hairRadius * (1 + features.coverage * .25); y = .45 + Math.sin(hairAngle) * hairRadius * .92;
+      }
+    } else if (composition === 1) {
       const side = random() > .5 ? 1 : -1; const lobeRadius = Math.pow(random(), .72) * .24;
       x = .5 + side * (.19 + features.coverage * .06) + Math.cos(angle) * lobeRadius;
       y = .5 + Math.sin(angle) * lobeRadius * .78;
@@ -62,7 +72,11 @@ export function simulateParticles(words: [number, number, number, number], featu
       const cx = x - 0.5, cy = y - 0.5;
       const polar = Math.atan2(cy, cx), r = Math.hypot(cx, cy);
       let field: number;
-      if (composition === 1) {
+      if (composition === 8) {
+        const hairX = x - .58, hairY = y - .45; const hairPolar = Math.atan2(hairY, hairX); const facePull = Math.atan2(.44 - y, .39 - x);
+        field = hairPolar + Math.PI / 2 + Math.sin(hairPolar * (4 + arms) + Math.hypot(hairX, hairY) * 29 + phase) * .5;
+        if (x < .48) field = Math.atan2(Math.sin(field) * .35 + Math.sin(facePull) * .65, Math.cos(field) * .35 + Math.cos(facePull) * .65);
+      } else if (composition === 1) {
         const focusX = x < .5 ? .31 : .69; const localX = x - focusX; const localY = y - .5; const localPolar = Math.atan2(localY, localX);
         field = localPolar + Math.PI / 2 + Math.sin(localPolar * arms + Math.hypot(localX, localY) * 38 + phase) * .48 + (x < .5 ? .12 : -.12);
       } else if (composition === 2) {
@@ -87,7 +101,7 @@ export function simulateParticles(words: [number, number, number, number], featu
         const wave = Math.sin((polar * arms) + r * config.fieldScale * 20 + phase);
         field = polar + Math.PI / 2 + wave * config.turbulence + Math.sin(y * 19 + x * 11) * 0.12 * entropy;
       }
-      if (composition < 5) {
+      if (composition < 5 || composition === 8) {
         const traceIndex = (i + step * 7) % traceCount; const pullAngle = Math.atan2(trace[traceIndex * 2 + 1] - y, trace[traceIndex * 2] - x);
         const pull = .06 + Math.min(.2, features.averageCurvature * .0015) + features.pressureMean * .08;
         field = Math.atan2(Math.sin(field) + Math.sin(pullAngle) * pull, Math.cos(field) + Math.cos(pullAngle) * pull);

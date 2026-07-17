@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { HeroConstellation } from "@/components/HeroConstellation";
 
 const marks = ["MOTION", "RHYTHM", "PAUSE", "DIRECTION", "ROYAL HOUSE"];
 
@@ -24,6 +25,7 @@ export default function Home() {
         </div>
 
         <div className="hero-art" aria-hidden="true">
+          <HeroConstellation />
           <div className="orbit orbit-a" />
           <div className="orbit orbit-b" />
           <div className="orbit orbit-c" />

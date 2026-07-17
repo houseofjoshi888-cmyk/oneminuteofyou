@@ -57,7 +57,9 @@ export function renderArtwork(canvas: HTMLCanvasElement, frame: ParticleFrame, c
     ctx.strokeStyle = `rgba(${color[0]},${color[1]},${color[2]},${config.lineAlpha * (.48 + tone * .8)})`;
     ctx.lineWidth = config.lineWidth * (0.65 + tone * 0.8);
     if (i % 211 === 0) { ctx.shadowColor = `rgba(${color[0]},${color[1]},${color[2]},.9)`; ctx.shadowBlur = config.size * .009; } else { ctx.shadowBlur = 0; }
-    ctx.beginPath(); ctx.moveTo(frame.starts[i * 2] * config.size, frame.starts[i * 2 + 1] * config.size); ctx.lineTo(frame.ends[i * 2] * config.size, frame.ends[i * 2 + 1] * config.size); ctx.stroke();
+    const sx = frame.starts[i * 2] * config.size, sy = frame.starts[i * 2 + 1] * config.size, ex = frame.ends[i * 2] * config.size, ey = frame.ends[i * 2 + 1] * config.size;
+    const dx = ex - sx, dy = ey - sy; const bend = (((frame.tones[(i + 31) % count] / 255) - .5) * .34) + (frame.composition === 8 ? .12 : 0);
+    ctx.beginPath(); ctx.moveTo(sx, sy); ctx.quadraticCurveTo((sx + ex) * .5 - dy * bend, (sy + ey) * .5 + dx * bend, ex, ey); ctx.stroke();
   }
   ctx.shadowBlur = 0;
   for (let i = 17; i < count; i += 73) {
@@ -66,6 +68,18 @@ export function renderArtwork(canvas: HTMLCanvasElement, frame: ParticleFrame, c
     ctx.fillStyle = tone > .84 ? "rgba(255,246,204,.92)" : "rgba(255,174,219,.72)";
     ctx.shadowColor = tone > .84 ? "#ffe9a6" : "#ff5fb6"; ctx.shadowBlur = radius * 8;
     ctx.beginPath(); ctx.arc(x, y, radius, 0, Math.PI * 2); ctx.fill();
+  }
+  for (let i = 11; i < count; i += 29) {
+    const tone = frame.tones[i] / 255; const x = frame.ends[i * 2] * config.size, y = frame.ends[i * 2 + 1] * config.size;
+    const color = palette[Math.floor(tone * palette.length) % palette.length]; const radius = config.size * (.00012 + tone * .00036);
+    ctx.globalAlpha = .18 + tone * .48; ctx.fillStyle = `rgb(${color[0]},${color[1]},${color[2]})`; ctx.shadowColor = ctx.fillStyle; ctx.shadowBlur = radius * 5;
+    ctx.beginPath(); ctx.arc(x, y, radius, 0, Math.PI * 2); ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+  for (let i = 101; i < count; i += 997) {
+    const x = frame.ends[i * 2] * config.size, y = frame.ends[i * 2 + 1] * config.size, radius = config.size * (.0025 + (frame.tones[i] / 255) * .0038);
+    ctx.strokeStyle = "rgba(255,242,190,.78)"; ctx.lineWidth = config.size * .00032; ctx.shadowColor = "#ffe49a"; ctx.shadowBlur = radius * 3;
+    ctx.beginPath(); ctx.moveTo(x - radius, y); ctx.lineTo(x + radius, y); ctx.moveTo(x, y - radius); ctx.lineTo(x, y + radius); ctx.moveTo(x - radius * .45, y - radius * .45); ctx.lineTo(x + radius * .45, y + radius * .45); ctx.moveTo(x + radius * .45, y - radius * .45); ctx.lineTo(x - radius * .45, y + radius * .45); ctx.stroke();
   }
   for (let i = 0; i < frame.taps.length; i += 2) {
     const x = frame.taps[i] * config.size, y = frame.taps[i + 1] * config.size; const base = config.size * (.007 + (i % 6) * .0015);
