@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { HeroConstellation } from "@/components/HeroConstellation";
+import { Brand } from "@/components/Brand";
 
 const marks = ["MOTION", "RHYTHM", "PAUSE", "DIRECTION", "ROYAL HOUSE"];
 
@@ -9,7 +10,7 @@ export default function Home() {
       <div className="ambient ambient-one" />
       <div className="ambient ambient-two" />
       <nav className="nav shell" aria-label="Primary navigation">
-        <Link className="brand" href="/">ONE MINUTE <i>OF</i> YOU</Link>
+        <Brand />
         <span className="nav-note">A deterministic portrait of attention</span>
       </nav>
 

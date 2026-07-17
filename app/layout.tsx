@@ -10,7 +10,7 @@ const mono = DM_Mono({ variable: "--font-mono", subsets: ["latin"], weight: ["30
 export const metadata: Metadata = {
   title: { default: "One Minute of You", template: "%s — One Minute of You" },
   description: "A deterministic generative portrait shaped by sixty seconds of your movement.",
-  icons: { icon: "/favicon.svg" },
+  icons: { icon: "/house-of-joshi-crest.png", apple: "/house-of-joshi-crest.png" },
   openGraph: {
     type: "website",
     title: "One Minute of You",

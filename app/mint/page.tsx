@@ -14,6 +14,7 @@ import { COMPOSITIONS, DEFAULT_SIMULATION, isSurfaceComposition, SURFACE_SIMULAT
 import { exportProvenanceCertificate } from "@/lib/provenance";
 import { royalChronicle } from "@/lib/chronicle";
 import { BaseMintButton } from "@/components/BaseMintButton";
+import { Brand } from "@/components/Brand";
 
 interface Result { features: InteractionFeatures; hash: string; words: [number, number, number, number]; }
 
@@ -28,7 +29,7 @@ export default function MintPage() {
   const highRes = useCallback(async () => { if (!result) return; setExporting(true); setActionError(""); try { await new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))); const canvas = document.createElement("canvas"); const composition = result.words[0] % COMPOSITIONS.length; const frame = simulateParticles(result.words, result.features, isSurfaceComposition(composition) ? SURFACE_SIMULATION : DEFAULT_SIMULATION); renderArtwork(canvas, frame, renderConfigForHouse(result.words)); exportPng(canvas, `one-minute-${result.hash.slice(0, 8)}-4096.png`); } catch { setActionError("This device could not complete the 4096px export. Close other tabs and try again."); } finally { setExporting(false); } }, [result]);
   const livingLoop = useCallback(async () => { if (!result || !livingCanvas) return; setRecordingLoop(true); setActionError(""); try { await exportLivingLoop(livingCanvas, `one-minute-${result.hash.slice(0, 8)}-living.webm`); } catch { setActionError("Living-loop export is not supported by this browser. The PNG and metadata exports still work."); } finally { setRecordingLoop(false); } }, [result, livingCanvas]);
 
-  if (!result) return <main className="result-page"><nav className="studio-nav"><Link className="brand" href="/">ONE MINUTE <i>OF</i> YOU</Link><WalletButton /></nav><section className="result-copy" style={{ maxWidth: 620, margin: "12vh auto" }}><p className="eyebrow"><span /> NO PORTRAIT FOUND</p><h2>Your minute<br /><em>awaits.</em></h2><p className="mint-note">{actionError || "Record a minute first. Your portrait and metadata stay only in this browser session."}</p><Link className="primary-button" href="/generate">Begin recording <span>↗</span></Link></section></main>;
+  if (!result) return <main className="result-page"><nav className="studio-nav"><Brand /><WalletButton /></nav><section className="result-copy" style={{ maxWidth: 620, margin: "12vh auto" }}><p className="eyebrow"><span /> NO PORTRAIT FOUND</p><h2>Your minute<br /><em>awaits.</em></h2><p className="mint-note">{actionError || "Record a minute first. Your portrait and metadata stay only in this browser session."}</p><Link className="primary-button" href="/generate">Begin recording <span>↗</span></Link></section></main>;
 
   const title = artworkName(result.hash, result.features);
   const house = royalHouseFromWords(result.words);
@@ -37,7 +38,7 @@ export default function MintPage() {
   const houseStyle = { "--house-primary": house.primary, "--house-secondary": house.secondary } as CSSProperties;
 
   return <main className="result-page" style={houseStyle}>
-    <nav className="studio-nav"><Link className="brand" href="/">ONE MINUTE <i>OF</i> YOU</Link><div className="wallet-nav"><span className="nav-note">{house.name.toUpperCase()} / {result.hash.slice(0, 8).toUpperCase()}</span><WalletButton /></div></nav>
+    <nav className="studio-nav"><Brand /><div className="wallet-nav"><span className="nav-note">{house.name.toUpperCase()} / {result.hash.slice(0, 8).toUpperCase()}</span><WalletButton /></div></nav>
     <div className="result-grid">
       <LivingRenderer words={result.words} features={result.features} onReady={setLivingCanvas} />
       <section className="result-copy">
