@@ -36,7 +36,7 @@ export function Recorder({ onComplete }: RecorderProps) {
     if (!active) return; const canvas = canvasRef.current; if (!canvas) return;
     if (kind === "down") canvas.setPointerCapture(event.pointerId);
     const point = normalizedPoint(event.nativeEvent, canvas.getBoundingClientRect(), startedAt.current, kind); points.current.push(point); if (points.current.length % 8 === 0 || kind !== "move") setSampleCount(points.current.length);
-    if (points.current.length > 1) { const previous = points.current[points.current.length - 2], ctx = canvas.getContext("2d"); if (ctx) { ctx.strokeStyle = `rgba(204,169,84,${0.18 + point.pressure * .4})`; ctx.lineWidth = 0.7 + point.pressure * 1.5; ctx.beginPath(); ctx.moveTo(previous.x * canvas.clientWidth, previous.y * canvas.clientHeight); ctx.lineTo(point.x * canvas.clientWidth, point.y * canvas.clientHeight); ctx.stroke(); } }
+    if (points.current.length > 1) { const previous = points.current[points.current.length - 2], ctx = canvas.getContext("2d"); if (ctx) { const hue = 38 + point.y * 280; ctx.strokeStyle = `hsla(${hue},88%,68%,${0.24 + point.pressure * .45})`; ctx.shadowColor = `hsla(${hue},95%,66%,.85)`; ctx.shadowBlur = 9; ctx.lineWidth = 0.8 + point.pressure * 1.6; ctx.beginPath(); ctx.moveTo(previous.x * canvas.clientWidth, previous.y * canvas.clientHeight); ctx.lineTo(point.x * canvas.clientWidth, point.y * canvas.clientHeight); ctx.stroke(); ctx.shadowBlur = 0; if (kind !== "move") { ctx.fillStyle = "rgba(255,245,205,.95)"; ctx.beginPath(); ctx.arc(point.x * canvas.clientWidth, point.y * canvas.clientHeight, 2.2, 0, Math.PI * 2); ctx.fill(); } } }
   };
 
   return <div className="studio-stage">

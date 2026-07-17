@@ -7,6 +7,7 @@ import { Stats } from "@/components/Stats";
 import { analyzeRecording, type InteractionFeatures } from "@/lib/analyzer";
 import { seedFromFeatures } from "@/lib/seed";
 import type { Recording } from "@/lib/recorder";
+import { artworkName } from "@/lib/export";
 
 interface Result { features: InteractionFeatures; hash: string; words: [number, number, number, number]; }
 
@@ -18,6 +19,6 @@ export default function GeneratePage() {
   }, []);
   return <main className={result ? "result-page" : "studio"}>
     <nav className="studio-nav"><Link className="brand" href="/">ONE MINUTE <i>OF</i> YOU</Link><span className="nav-note">{result ? "YOUR DETERMINISTIC PORTRAIT" : "60 SECONDS · PRIVATE · LOCAL"}</span></nav>
-    {!result ? <Recorder onComplete={complete} /> : <div className="result-grid"><Renderer words={result.words} features={result.features} /><section className="result-copy"><p className="eyebrow"><span /> PORTRAIT COMPLETE</p><h2>A trace of<br /><em>your attention.</em></h2><p className="mint-note">The same fingerprint will always resolve to this exact composition. No randomness remains outside your seed.</p><div className="hash">SHA-256 / {result.hash}</div><Stats features={result.features} /><div className="result-actions"><Link className="primary-button" href="/mint">Prepare edition <span>↗</span></Link><button className="secondary-button" onClick={() => setResult(null)}>Record again</button></div></section></div>}
+    {!result ? <Recorder onComplete={complete} /> : <div className="result-grid"><Renderer words={result.words} features={result.features} /><section className="result-copy"><p className="eyebrow"><span /> ONE MINUTE OF YOU · NFT PORTRAIT</p><h2>{artworkName(result.hash, result.features)}<br /><em>is uniquely yours.</em></h2><p className="mint-note">The same fingerprint will always resolve to this exact named composition. No randomness remains outside your seed.</p><div className="hash">SHA-256 / {result.hash}</div><Stats features={result.features} /><div className="result-actions"><Link className="primary-button" href="/mint">Prepare NFT edition <span>↗</span></Link><button className="secondary-button" onClick={() => setResult(null)}>Record again</button></div></section></div>}
   </main>;
 }

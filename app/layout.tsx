@@ -14,9 +14,9 @@ export const metadata: Metadata = {
     type: "website",
     title: "One Minute of You",
     description: "Your movement. Made visible.",
-    images: [{ url: "/og.png", width: 1200, height: 630, alt: "One Minute of You — Your movement. Made visible." }],
+    images: [{ url: "/og-color.png", width: 1200, height: 630, alt: "One Minute of You — Every minute becomes a one-of-one." }],
   },
-  twitter: { card: "summary_large_image", title: "One Minute of You", description: "Your movement. Made visible.", images: ["/og.png"] },
+  twitter: { card: "summary_large_image", title: "One Minute of You", description: "Every minute becomes a one-of-one.", images: ["/og-color.png"] },
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
