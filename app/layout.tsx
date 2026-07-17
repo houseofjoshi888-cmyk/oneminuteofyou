@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Cormorant_Garamond, DM_Mono, Manrope } from "next/font/google";
 import "./globals.css";
 import { Providers } from "./providers";
@@ -19,6 +19,8 @@ export const metadata: Metadata = {
   },
   twitter: { card: "summary_large_image", title: "One Minute of You", description: "Every minute enters a Royal House.", images: ["/og-royal.png"] },
 };
+
+export const viewport: Viewport = { width: "device-width", initialScale: 1, viewportFit: "cover", themeColor: "#05040a" };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return <html lang="en"><body className={`${display.variable} ${sans.variable} ${mono.variable}`}><Providers>{children}</Providers></body></html>;
