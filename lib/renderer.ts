@@ -22,6 +22,15 @@ export function renderArtwork(canvas: HTMLCanvasElement, frame: ParticleFrame, c
   const aura = ctx.createRadialGradient(config.size * .55, config.size * .48, 0, config.size * .55, config.size * .48, config.size * .68);
   aura.addColorStop(0, "rgba(79,45,145,.22)"); aura.addColorStop(.38, "rgba(17,122,133,.09)"); aura.addColorStop(.72, "rgba(156,36,100,.07)"); aura.addColorStop(1, "transparent");
   ctx.fillStyle = aura; ctx.fillRect(0, 0, config.size, config.size);
+  if (frame.trace.length >= 4) {
+    ctx.globalCompositeOperation = "lighter"; ctx.lineCap = "round"; ctx.lineJoin = "round";
+    for (const layer of [{ width: .026, alpha: .025, blur: .035 }, { width: .009, alpha: .07, blur: .016 }, { width: .0012, alpha: .3, blur: .005 }]) {
+      ctx.beginPath(); ctx.moveTo(frame.trace[0] * config.size, frame.trace[1] * config.size);
+      for (let i = 2; i < frame.trace.length; i += 2) ctx.lineTo(frame.trace[i] * config.size, frame.trace[i + 1] * config.size);
+      ctx.strokeStyle = `rgba(255,112,190,${layer.alpha})`; ctx.lineWidth = config.size * layer.width; ctx.shadowColor = "#8d72ff"; ctx.shadowBlur = config.size * layer.blur; ctx.stroke();
+    }
+    ctx.shadowBlur = 0;
+  }
   ctx.lineCap = "round"; ctx.globalCompositeOperation = "lighter";
   const palette = config.palette || [[config.gold[0], config.gold[1], config.gold[2]], [255, 92, 170], [97, 206, 220], [142, 110, 255]];
   const count = frame.tones.length;
@@ -40,6 +49,10 @@ export function renderArtwork(canvas: HTMLCanvasElement, frame: ParticleFrame, c
     ctx.fillStyle = tone > .84 ? "rgba(255,246,204,.92)" : "rgba(255,174,219,.72)";
     ctx.shadowColor = tone > .84 ? "#ffe9a6" : "#ff5fb6"; ctx.shadowBlur = radius * 8;
     ctx.beginPath(); ctx.arc(x, y, radius, 0, Math.PI * 2); ctx.fill();
+  }
+  for (let i = 0; i < frame.taps.length; i += 2) {
+    const x = frame.taps[i] * config.size, y = frame.taps[i + 1] * config.size; const base = config.size * (.007 + (i % 6) * .0015);
+    for (let ring = 1; ring <= 3; ring++) { ctx.strokeStyle = `rgba(${ring === 2 ? "255,100,185" : "255,222,126"},${.2 / ring})`; ctx.lineWidth = config.size * .00045; ctx.shadowColor = ring === 2 ? "#ff5ca8" : "#ffd978"; ctx.shadowBlur = config.size * .006; ctx.beginPath(); ctx.arc(x, y, base * ring, 0, Math.PI * 2); ctx.stroke(); }
   }
   ctx.shadowBlur = 0;
   ctx.globalCompositeOperation = "source-over";

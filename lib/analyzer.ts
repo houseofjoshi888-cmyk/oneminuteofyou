@@ -1,7 +1,7 @@
 import type { Recording } from "./recorder";
 
 export interface InteractionFeatures {
-  version: 1;
+  version: 2;
   durationMs: number;
   samples: number;
   distance: number;
@@ -16,6 +16,8 @@ export interface InteractionFeatures {
   coverage: number;
   pressureMean: number;
   pointerMix: Record<string, number>;
+  gestureTrace: number[];
+  tapTrace: number[];
 }
 
 const q = (value: number, digits = 6) => Number(value.toFixed(digits));
@@ -63,12 +65,16 @@ export function analyzeRecording(recording: Recording): InteractionFeatures {
 
   const directionTotal = directions.reduce((a, b) => a + b, 0);
   const entropy = directionTotal ? -directions.reduce((sum, count) => count ? sum + (count / directionTotal) * Math.log2(count / directionTotal) : sum, 0) : 0;
+  const movement = p.filter(point => point.kind !== "up");
+  const traceSource = movement.length ? movement : [{ x: .5, y: .5 }];
+  const gestureTrace = Array.from({ length: 64 }, (_, index) => traceSource[Math.round(index * (traceSource.length - 1) / 63)]).flatMap(point => [q(point.x, 5), q(point.y, 5)]);
+  const tapTrace = p.filter(point => point.kind === "down").slice(0, 24).flatMap(point => [q(point.x, 5), q(point.y, 5)]);
   return {
-    version: 1, durationMs: recording.durationMs, samples: p.length,
+    version: 2, durationMs: recording.durationMs, samples: p.length,
     distance: q(distance), averageSpeed: q(speedSum / Math.max(1, speedCount)), peakSpeed: q(peakSpeed),
     averageAcceleration: q(acceleration / Math.max(1, accelerationCount)), averageCurvature: q(curvature / Math.max(1, turnCount)),
     pauses, pauseDurationMs: Math.round(pauseDurationMs), taps, directionEntropy: q(entropy), coverage: q(cells.size / 100),
-    pressureMean: q(pressure / Math.max(1, p.length)), pointerMix,
+    pressureMean: q(pressure / Math.max(1, p.length)), pointerMix, gestureTrace, tapTrace,
   };
 }
 

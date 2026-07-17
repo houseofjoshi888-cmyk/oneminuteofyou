@@ -3,8 +3,8 @@ import type { InteractionFeatures } from "./analyzer";
 
 export interface SimulationConfig { particleCount: number; steps: number; fieldScale: number; stepLength: number; turbulence: number; }
 export const DEFAULT_SIMULATION: SimulationConfig = { particleCount: 100_000, steps: 54, fieldScale: 3.2, stepLength: 0.0018, turbulence: 0.54 };
-export interface ParticleFrame { starts: Float32Array; ends: Float32Array; tones: Uint8Array; }
-export const COMPOSITIONS = ["Solar Vortex", "Twin Bloom", "Silk Current", "Orbital Halo", "Drifting Nebula"] as const;
+export interface ParticleFrame { starts: Float32Array; ends: Float32Array; tones: Uint8Array; trace: Float32Array; taps: Float32Array; composition: number; }
+export const COMPOSITIONS = ["Solar Vortex", "Twin Bloom", "Silk Current", "Orbital Halo", "Drifting Nebula", "Touch Echo", "Rose Lattice", "Constellation Weave"] as const;
 
 export function simulateParticles(words: [number, number, number, number], features: InteractionFeatures, config: SimulationConfig = DEFAULT_SIMULATION): ParticleFrame {
   const random = mulberry32(mixWords(words));
@@ -15,6 +15,9 @@ export function simulateParticles(words: [number, number, number, number], featu
   const composition = words[0] % COMPOSITIONS.length;
   const phase = (words[2] / 4294967296) * Math.PI * 2;
   const tilt = ((words[3] / 4294967296) - .5) * 1.2;
+  const trace = new Float32Array(features.gestureTrace?.length >= 4 ? features.gestureTrace : [.5, .5, .5, .5]);
+  const taps = new Float32Array(features.tapTrace || []);
+  const traceCount = trace.length / 2; const tapCount = taps.length / 2;
   for (let i = 0; i < count; i++) {
     const angle = random() * Math.PI * 2;
     const radius = Math.pow(random(), 0.67) * 0.46;
@@ -37,6 +40,19 @@ export function simulateParticles(words: [number, number, number, number], featu
       const cx = .5 + Math.cos(clusterAngle) * (.12 + cluster * .045); const cy = .5 + Math.sin(clusterAngle) * (.08 + cluster * .035);
       const cloudRadius = Math.pow(random(), 1.25) * (.1 + cluster * .028);
       x = cx + Math.cos(angle) * cloudRadius; y = cy + Math.sin(angle) * cloudRadius * .6;
+    } else if (composition === 5) {
+      const traceIndex = Math.floor(random() * traceCount); const nextIndex = Math.min(traceCount - 1, traceIndex + 1);
+      const tx = trace[traceIndex * 2], ty = trace[traceIndex * 2 + 1]; const direction = Math.atan2(trace[nextIndex * 2 + 1] - ty, trace[nextIndex * 2] - tx);
+      const offset = (random() - .5) * (.035 + features.pressureMean * .09);
+      x = tx + Math.cos(direction + Math.PI / 2) * offset; y = ty + Math.sin(direction + Math.PI / 2) * offset;
+    } else if (composition === 6) {
+      const petals = 3 + ((features.taps + words[1]) % 8); const roseRadius = .2 + Math.cos(angle * petals + phase) * .15 + (random() - .5) * .035;
+      x = .5 + Math.cos(angle + tilt) * roseRadius; y = .5 + Math.sin(angle + tilt) * roseRadius;
+    } else if (composition === 7) {
+      const nodeCount = tapCount || traceCount; const nodeIndex = Math.floor(random() * nodeCount);
+      const nx = tapCount ? taps[nodeIndex * 2] : trace[nodeIndex * 2]; const ny = tapCount ? taps[nodeIndex * 2 + 1] : trace[nodeIndex * 2 + 1];
+      const nodeRadius = Math.pow(random(), 1.8) * (.035 + features.pressureMean * .06);
+      x = nx + Math.cos(angle) * nodeRadius; y = ny + Math.sin(angle) * nodeRadius;
     } else {
       x = 0.5 + Math.cos(angle) * radius * (0.78 + features.coverage * 0.35);
       y = 0.5 + Math.sin(angle) * radius;
@@ -56,15 +72,31 @@ export function simulateParticles(words: [number, number, number, number], featu
         field = polar + Math.PI / 2 + correction + Math.sin(polar * arms + phase) * .3;
       } else if (composition === 4) {
         field = Math.sin(x * 11 + phase) * 1.1 + Math.cos(y * 13 - phase) * .85 + tilt + Math.sin((x + y) * 19) * .22;
+      } else if (composition === 5) {
+        const base = Math.floor((i / count) * Math.max(1, traceCount - 1)); const targetIndex = Math.min(traceCount - 1, base + Math.floor(step * traceCount / config.steps));
+        const tx = trace[targetIndex * 2], ty = trace[targetIndex * 2 + 1];
+        field = Math.atan2(ty - y, tx - x) + Math.sin(step * .55 + i * .013 + phase) * (.12 + entropy * .16);
+      } else if (composition === 6) {
+        const petals = 3 + ((features.taps + words[1]) % 8); const targetRadius = .2 + Math.cos(polar * petals + phase) * .15;
+        field = polar + Math.PI / 2 + (targetRadius - r) * 4.2 + Math.sin(polar * petals * 2) * .16;
+      } else if (composition === 7) {
+        const nodeCount = tapCount || traceCount; const nodeIndex = (i + step * 3) % nodeCount;
+        const nx = tapCount ? taps[nodeIndex * 2] : trace[nodeIndex * 2]; const ny = tapCount ? taps[nodeIndex * 2 + 1] : trace[nodeIndex * 2 + 1];
+        const toNode = Math.atan2(ny - y, nx - x); field = toNode + Math.sin(step * .32 + phase) * .38 + Math.PI * .08;
       } else {
         const wave = Math.sin((polar * arms) + r * config.fieldScale * 20 + phase);
         field = polar + Math.PI / 2 + wave * config.turbulence + Math.sin(y * 19 + x * 11) * 0.12 * entropy;
       }
-      const length = config.stepLength * (0.72 + random() * 0.56) * (1 + features.averageSpeed * 0.025);
+      if (composition < 5) {
+        const traceIndex = (i + step * 7) % traceCount; const pullAngle = Math.atan2(trace[traceIndex * 2 + 1] - y, trace[traceIndex * 2] - x);
+        const pull = .06 + Math.min(.2, features.averageCurvature * .0015) + features.pressureMean * .08;
+        field = Math.atan2(Math.sin(field) + Math.sin(pullAngle) * pull, Math.cos(field) + Math.cos(pullAngle) * pull);
+      }
+      const length = config.stepLength * (0.72 + random() * 0.56) * (1 + features.averageSpeed * 0.025) * (.9 + features.pressureMean * .3);
       x += Math.cos(field) * length; y += Math.sin(field) * length;
       if (x < 0 || x > 1 || y < 0 || y > 1) break;
     }
     ends[i * 2] = x; ends[i * 2 + 1] = y; tones[i] = Math.floor(random() * 255);
   }
-  return { starts, ends, tones };
+  return { starts, ends, tones, trace, taps, composition };
 }
