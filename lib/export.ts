@@ -1,5 +1,6 @@
 import type { InteractionFeatures } from "./analyzer";
 import type { SimulationConfig } from "./simulation";
+import { COMPOSITIONS } from "./simulation";
 
 export interface ArtworkMetadata {
   name: string;
@@ -21,10 +22,14 @@ export function artworkName(hash: string, features: InteractionFeatures): string
   return `${first} ${lastNames[lastIndex]}`;
 }
 
+export function compositionName(hash: string): string {
+  return COMPOSITIONS[Number.parseInt(hash.slice(0, 8), 16) % COMPOSITIONS.length];
+}
+
 export function createMetadata(hash: string, features: InteractionFeatures, simulation: SimulationConfig): ArtworkMetadata {
   const title = artworkName(hash, features); const edition = hash.slice(0, 8).toUpperCase();
   return { name: `${title} — One Minute of You`, collection: { name: "One Minute of You", family: "One Minute of You" }, description: `“${title}” is a deterministic generative NFT portrait derived from sixty seconds of human movement.`, image: "artwork.png", seed: hash, edition, simulation, attributes: [
-    { trait_type: "Artwork", value: title }, { trait_type: "Edition", value: edition }, { trait_type: "Distance", value: features.distance }, { trait_type: "Average speed", value: features.averageSpeed }, { trait_type: "Curvature", value: features.averageCurvature }, { trait_type: "Pauses", value: features.pauses }, { trait_type: "Taps", value: features.taps }, { trait_type: "Direction entropy", value: features.directionEntropy }, { trait_type: "Coverage", value: features.coverage },
+    { trait_type: "Artwork", value: title }, { trait_type: "Composition", value: compositionName(hash) }, { trait_type: "Edition", value: edition }, { trait_type: "Distance", value: features.distance }, { trait_type: "Average speed", value: features.averageSpeed }, { trait_type: "Curvature", value: features.averageCurvature }, { trait_type: "Pauses", value: features.pauses }, { trait_type: "Taps", value: features.taps }, { trait_type: "Direction entropy", value: features.directionEntropy }, { trait_type: "Coverage", value: features.coverage },
   ] };
 }
 
