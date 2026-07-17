@@ -1,7 +1,8 @@
 import type { ParticleFrame } from "./simulation";
+import { royalHouseFromWords } from "./houses";
 
 type RGB = [number, number, number];
-export interface RenderConfig { size: number; background: string; gold: RGB; palette?: RGB[]; lineAlpha: number; lineWidth: number; }
+export interface RenderConfig { size: number; background: string; gold: RGB; palette?: RGB[]; lineAlpha: number; lineWidth: number; ornament?: "arch" | "stars" | "lattice" | "lotus" | "sunburst"; accent?: string; }
 export const DEFAULT_RENDER: RenderConfig = {
   size: 4096,
   background: "#05040a",
@@ -11,8 +12,24 @@ export const DEFAULT_RENDER: RenderConfig = {
   lineWidth: 0.52,
 };
 
+export function renderConfigForHouse(words: readonly number[], size = 4096): RenderConfig {
+  const house = royalHouseFromWords(words);
+  return { ...DEFAULT_RENDER, size, background: house.background, gold: house.palette[0], palette: house.palette, ornament: house.ornament, accent: house.primary };
+}
+
 function mix(a: RGB, b: RGB, amount: number): RGB {
   return a.map((value, index) => Math.round(value + (b[index] - value) * amount)) as RGB;
+}
+
+function drawRoyalOrnament(ctx: CanvasRenderingContext2D, config: RenderConfig) {
+  const size = config.size, margin = size * .035; ctx.save(); ctx.globalCompositeOperation = "lighter"; ctx.strokeStyle = config.accent || "#f2c65c"; ctx.lineWidth = size * .00055; ctx.globalAlpha = .38; ctx.shadowColor = config.accent || "#f2c65c"; ctx.shadowBlur = size * .006;
+  ctx.strokeRect(margin, margin, size - margin * 2, size - margin * 2); ctx.globalAlpha = .18; ctx.strokeRect(margin * 1.35, margin * 1.35, size - margin * 2.7, size - margin * 2.7);
+  if (config.ornament === "arch") { for (let i = 0; i < 9; i++) { const x = margin + (size - margin * 2) * i / 8; ctx.beginPath(); ctx.arc(x, margin, size * .035, 0, Math.PI); ctx.stroke(); ctx.beginPath(); ctx.arc(x, size - margin, size * .035, Math.PI, Math.PI * 2); ctx.stroke(); } }
+  if (config.ornament === "stars") { for (let i = 0; i < 24; i++) { const a = i * Math.PI * 2 / 24, radius = size * .43; const x = size / 2 + Math.cos(a) * radius, y = size / 2 + Math.sin(a) * radius; ctx.beginPath(); ctx.moveTo(x - size * .006, y); ctx.lineTo(x + size * .006, y); ctx.moveTo(x, y - size * .006); ctx.lineTo(x, y + size * .006); ctx.stroke(); } }
+  if (config.ornament === "lattice") { for (let i = 0; i < 12; i++) { const p = margin + i * (size - margin * 2) / 11; ctx.beginPath(); ctx.moveTo(margin, p); ctx.lineTo(p, margin); ctx.moveTo(size - margin, p); ctx.lineTo(size - p, margin); ctx.moveTo(margin, size - p); ctx.lineTo(p, size - margin); ctx.moveTo(size - margin, size - p); ctx.lineTo(size - p, size - margin); ctx.stroke(); } }
+  if (config.ornament === "lotus") { for (let i = 0; i < 16; i++) { const a = i * Math.PI * 2 / 16; ctx.beginPath(); ctx.ellipse(size / 2 + Math.cos(a) * size * .425, size / 2 + Math.sin(a) * size * .425, size * .022, size * .052, a + Math.PI / 2, 0, Math.PI * 2); ctx.stroke(); } }
+  if (config.ornament === "sunburst") { for (let i = 0; i < 48; i++) { const a = i * Math.PI * 2 / 48; const r1 = size * .425, r2 = r1 + size * (i % 2 ? .018 : .03); ctx.beginPath(); ctx.moveTo(size / 2 + Math.cos(a) * r1, size / 2 + Math.sin(a) * r1); ctx.lineTo(size / 2 + Math.cos(a) * r2, size / 2 + Math.sin(a) * r2); ctx.stroke(); } }
+  ctx.restore();
 }
 
 export function renderArtwork(canvas: HTMLCanvasElement, frame: ParticleFrame, config: RenderConfig = DEFAULT_RENDER): void {
@@ -54,6 +71,7 @@ export function renderArtwork(canvas: HTMLCanvasElement, frame: ParticleFrame, c
     const x = frame.taps[i] * config.size, y = frame.taps[i + 1] * config.size; const base = config.size * (.007 + (i % 6) * .0015);
     for (let ring = 1; ring <= 3; ring++) { ctx.strokeStyle = `rgba(${ring === 2 ? "255,100,185" : "255,222,126"},${.2 / ring})`; ctx.lineWidth = config.size * .00045; ctx.shadowColor = ring === 2 ? "#ff5ca8" : "#ffd978"; ctx.shadowBlur = config.size * .006; ctx.beginPath(); ctx.arc(x, y, base * ring, 0, Math.PI * 2); ctx.stroke(); }
   }
+  drawRoyalOrnament(ctx, config);
   ctx.shadowBlur = 0;
   ctx.globalCompositeOperation = "source-over";
   const vignette = ctx.createRadialGradient(config.size / 2, config.size / 2, config.size * .25, config.size / 2, config.size / 2, config.size * .72);

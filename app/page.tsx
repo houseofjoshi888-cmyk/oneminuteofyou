@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-const marks = ["MOTION", "RHYTHM", "PAUSE", "DIRECTION"];
+const marks = ["MOTION", "RHYTHM", "PAUSE", "DIRECTION", "ROYAL HOUSE"];
 
 export default function Home() {
   return (
@@ -16,7 +16,7 @@ export default function Home() {
         <div className="hero-copy">
           <p className="eyebrow"><span /> GENERATIVE STUDY Nº 01</p>
           <h1>Your movement.<br /><em>Made visible.</em></h1>
-          <p className="lede">Give us sixty seconds of your attention. Every hesitation, sweep, and turn becomes a singular work of generative art—made only from you.</p>
+          <p className="lede">Give us sixty seconds of your attention. Every hesitation, sweep, and turn becomes a singular work of generative art—then enters one of five deterministic Royal Houses.</p>
           <div className="hero-actions">
             <Link className="primary-button" href="/generate">Begin your minute <span>↗</span></Link>
             <span className="privacy"><b>●</b> Recorded locally<br />Nothing leaves your device</span>

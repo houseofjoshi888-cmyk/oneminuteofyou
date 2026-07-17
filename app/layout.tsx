@@ -13,10 +13,10 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     title: "One Minute of You",
-    description: "Your movement. Made visible.",
-    images: [{ url: "/og-color.png", width: 1200, height: 630, alt: "One Minute of You — Every minute becomes a one-of-one." }],
+    description: "Every minute enters a Royal House.",
+    images: [{ url: "/og-royal.png", width: 1200, height: 630, alt: "One Minute of You — The Royal Houses." }],
   },
-  twitter: { card: "summary_large_image", title: "One Minute of You", description: "Every minute becomes a one-of-one.", images: ["/og-color.png"] },
+  twitter: { card: "summary_large_image", title: "One Minute of You", description: "Every minute enters a Royal House.", images: ["/og-royal.png"] },
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
