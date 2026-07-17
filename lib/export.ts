@@ -10,6 +10,7 @@ export interface ArtworkMetadata {
   image: string;
   seed: string;
   edition: string;
+  provenance: { algorithm: "SHA-256"; seal: string; verification: string };
   attributes: { trait_type: string; value: string | number }[];
   simulation: SimulationConfig;
 }
@@ -27,7 +28,7 @@ export function compositionName(hash: string): string {
 
 export function createMetadata(hash: string, features: InteractionFeatures, simulation: SimulationConfig): ArtworkMetadata {
   const title = artworkName(hash, features); const edition = hash.slice(0, 8).toUpperCase(); const house = royalHouseFromHash(hash); const rarity = royalRarity(hash, features.coverage + features.directionEntropy + features.pressureMean);
-  return { name: `${title} — One Minute of You`, collection: { name: "One Minute of You: Royal Houses", family: "One Minute of You" }, description: `“${title}” is a ${rarity.tier.toLowerCase()} portrait of ${house.name}, deterministically derived from sixty seconds of human movement.`, image: "artwork.png", seed: hash, edition, simulation, attributes: [
+  return { name: `${title} — One Minute of You`, collection: { name: "One Minute of You: Royal Houses", family: "One Minute of You" }, description: `“${title}” is a ${rarity.tier.toLowerCase()} portrait of ${house.name}, deterministically derived from sixty seconds of human movement.`, image: "artwork.png", seed: hash, edition, provenance: { algorithm: "SHA-256", seal: hash.slice(0, 16).toUpperCase(), verification: "Recompute SHA-256 from the canonical interaction feature serialization." }, simulation, attributes: [
     { trait_type: "Artwork", value: title }, { trait_type: "Royal House", value: house.name }, { trait_type: "Gemstone", value: house.gemstone }, { trait_type: "Royal Rarity", value: rarity.tier }, { trait_type: "Rarity Score", value: rarity.score }, { trait_type: "Ornament", value: house.ornament }, { trait_type: "Composition", value: compositionName(hash) }, { trait_type: "Edition", value: edition }, { trait_type: "Distance", value: features.distance }, { trait_type: "Average speed", value: features.averageSpeed }, { trait_type: "Curvature", value: features.averageCurvature }, { trait_type: "Pauses", value: features.pauses }, { trait_type: "Taps", value: features.taps }, { trait_type: "Direction entropy", value: features.directionEntropy }, { trait_type: "Coverage", value: features.coverage },
   ] };
 }
