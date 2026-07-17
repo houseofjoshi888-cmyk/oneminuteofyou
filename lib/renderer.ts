@@ -51,6 +51,29 @@ function drawPatternMotif(ctx: CanvasRenderingContext2D, composition: number, co
   ctx.restore();
 }
 
+function drawSurfacePattern(ctx: CanvasRenderingContext2D, frame: ParticleFrame, config: RenderConfig, palette: RGB[]) {
+  const size = config.size; const tone = (index: number) => frame.tones[index % frame.tones.length] / 255; const color = (index: number) => palette[Math.min(palette.length - 1, Math.floor(tone(index) * palette.length))];
+  ctx.save(); ctx.globalCompositeOperation = "source-over";
+  if (frame.composition === 13) {
+    const cells = 9; const unit = size / cells; for (let row = 0; row < cells; row++) for (let column = 0; column < cells; column++) { const c = color(row * cells + column); const x = column * unit, y = row * unit; ctx.fillStyle = `rgb(${c[0]},${c[1]},${c[2]})`; ctx.globalAlpha = .35 + tone(row * 7 + column) * .48; ctx.fillRect(x + unit * .06, y + unit * .06, unit * .88, unit * .88); ctx.fillStyle = config.background; ctx.globalAlpha = .48; ctx.beginPath(); ctx.moveTo(x + unit * .5, y + unit * .16); ctx.lineTo(x + unit * .84, y + unit * .5); ctx.lineTo(x + unit * .5, y + unit * .84); ctx.lineTo(x + unit * .16, y + unit * .5); ctx.closePath(); ctx.fill(); }
+  }
+  if (frame.composition === 14) {
+    ctx.globalCompositeOperation = "lighter"; ctx.lineCap = "round"; for (let ribbon = 0; ribbon < 28; ribbon++) { const c = color(ribbon * 3); ctx.strokeStyle = `rgba(${c[0]},${c[1]},${c[2]},${.16 + tone(ribbon) * .36})`; ctx.lineWidth = size * (.006 + tone(ribbon + 8) * .014); ctx.beginPath(); const y = size * (.04 + ribbon * .034); ctx.moveTo(-size * .06, y); ctx.bezierCurveTo(size * .25, y - size * (.16 + tone(ribbon) * .12), size * .72, y + size * (.18 + tone(ribbon + 4) * .1), size * 1.08, y + Math.sin(ribbon) * size * .08); ctx.stroke(); }
+  }
+  if (frame.composition === 15) {
+    const cells = 7; const unit = size / cells; ctx.globalAlpha = .78; for (let row = 0; row < cells; row++) for (let column = 0; column < cells; column++) { const c = color(row * cells + column); const x = column * unit, y = row * unit; const inset = unit * (.08 + tone(row + column) * .12); ctx.fillStyle = `rgb(${c[0]},${c[1]},${c[2]})`; ctx.beginPath(); ctx.moveTo(x + inset, y + unit * .12); ctx.lineTo(x + unit - inset, y + inset); ctx.lineTo(x + unit * (.82 + tone(row * 2) * .09), y + unit - inset); ctx.lineTo(x + inset, y + unit * (.86 - tone(column) * .1)); ctx.closePath(); ctx.fill(); ctx.strokeStyle = config.background; ctx.lineWidth = size * .004; ctx.stroke(); }
+  }
+  if (frame.composition === 16) {
+    ctx.globalCompositeOperation = "lighter"; ctx.lineCap = "round"; for (let line = 0; line < 32; line++) { const c = color(line); ctx.strokeStyle = `rgba(${c[0]},${c[1]},${c[2]},${.24 + tone(line) * .38})`; ctx.lineWidth = size * (.0007 + tone(line + 3) * .0014); ctx.beginPath(); for (let step = 0; step <= 120; step++) { const x = step / 120 * size; const y = size * (.06 + line * .028) + Math.sin(step * .15 + line * .71) * size * (.018 + tone(line) * .02) + Math.sin(step * .041 - line) * size * .035; if (!step) ctx.moveTo(x, y); else ctx.lineTo(x, y); } ctx.stroke(); }
+  }
+  if (frame.composition === 17) {
+    // A seeded gesture, rather than a literal replay of the owner's hand.
+    ctx.globalCompositeOperation = "lighter"; ctx.lineCap = "round"; ctx.lineJoin = "round";
+    for (let layer = 0; layer < 7; layer++) { const c = color(layer * 5); const phase = tone(layer + 2) * Math.PI * 2; ctx.strokeStyle = `rgba(${c[0]},${c[1]},${c[2]},${.12 + layer * .045})`; ctx.lineWidth = size * (.0028 + layer * .0023); ctx.beginPath(); for (let step = 0; step <= 180; step++) { const t = step / 180; const x = size * (.09 + t * .82); const y = size * (.5 + Math.sin(t * Math.PI * (1.3 + layer * .17) + phase) * (.13 + tone(layer) * .13) + Math.sin(t * Math.PI * (4 + layer) - phase) * .035 + (layer - 3) * .026); if (!step) ctx.moveTo(x, y); else ctx.lineTo(x, y); } ctx.stroke(); }
+  }
+  ctx.restore();
+}
+
 export function renderArtwork(canvas: HTMLCanvasElement, frame: ParticleFrame, config: RenderConfig = DEFAULT_RENDER): void {
   canvas.width = config.size; canvas.height = config.size;
   const ctx = canvas.getContext("2d", { alpha: false }); if (!ctx) return;
@@ -58,17 +81,12 @@ export function renderArtwork(canvas: HTMLCanvasElement, frame: ParticleFrame, c
   const aura = ctx.createRadialGradient(config.size * .55, config.size * .48, 0, config.size * .55, config.size * .48, config.size * .68);
   aura.addColorStop(0, "rgba(79,45,145,.22)"); aura.addColorStop(.38, "rgba(17,122,133,.09)"); aura.addColorStop(.72, "rgba(156,36,100,.07)"); aura.addColorStop(1, "transparent");
   ctx.fillStyle = aura; ctx.fillRect(0, 0, config.size, config.size);
-  if (frame.trace.length >= 4) {
-    ctx.globalCompositeOperation = "lighter"; ctx.lineCap = "round"; ctx.lineJoin = "round";
-    for (const layer of [{ width: .026, alpha: .025, blur: .035 }, { width: .009, alpha: .07, blur: .016 }, { width: .0012, alpha: .3, blur: .005 }]) {
-      ctx.beginPath(); ctx.moveTo(frame.trace[0] * config.size, frame.trace[1] * config.size);
-      for (let i = 2; i < frame.trace.length; i += 2) ctx.lineTo(frame.trace[i] * config.size, frame.trace[i + 1] * config.size);
-      ctx.strokeStyle = `rgba(255,112,190,${layer.alpha})`; ctx.lineWidth = config.size * layer.width; ctx.shadowColor = "#8d72ff"; ctx.shadowBlur = config.size * layer.blur; ctx.stroke();
-    }
-    ctx.shadowBlur = 0;
-  }
   ctx.lineCap = "round"; ctx.globalCompositeOperation = "lighter";
   const palette = config.palette || [[config.gold[0], config.gold[1], config.gold[2]], [255, 92, 170], [97, 206, 220], [142, 110, 255]];
+  if (frame.composition >= 13) {
+    drawSurfacePattern(ctx, frame, config, palette); drawRoyalOrnament(ctx, config); ctx.globalCompositeOperation = "source-over";
+    const vignette = ctx.createRadialGradient(config.size / 2, config.size / 2, config.size * .25, config.size / 2, config.size / 2, config.size * .72); vignette.addColorStop(0, "transparent"); vignette.addColorStop(1, "rgba(0,0,0,.52)"); ctx.fillStyle = vignette; ctx.fillRect(0, 0, config.size, config.size); return;
+  }
   const count = frame.tones.length;
   const toneBins = 24;
   const supportsPath2D = typeof Path2D !== "undefined";

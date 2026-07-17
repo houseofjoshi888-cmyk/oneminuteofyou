@@ -4,8 +4,10 @@ import type { InteractionFeatures } from "./analyzer";
 export interface SimulationConfig { particleCount: number; steps: number; fieldScale: number; stepLength: number; turbulence: number; }
 export const DEFAULT_SIMULATION: SimulationConfig = { particleCount: 100_000, steps: 54, fieldScale: 3.2, stepLength: 0.0018, turbulence: 0.54 };
 export const PREVIEW_SIMULATION: SimulationConfig = { ...DEFAULT_SIMULATION, particleCount: 18_000, steps: 32 };
+export const SURFACE_SIMULATION: SimulationConfig = { ...DEFAULT_SIMULATION, particleCount: 1, steps: 1 };
 export interface ParticleFrame { starts: Float32Array; ends: Float32Array; tones: Uint8Array; trace: Float32Array; taps: Float32Array; composition: number; }
-export const COMPOSITIONS = ["Solar Vortex", "Twin Bloom", "Silk Current", "Orbital Halo", "Drifting Nebula", "Touch Echo", "Rose Lattice", "Constellation Weave", "Celestial Muse", "Sacred Lattice", "Chrysanthemum Bloom", "Art Deco Fan", "Marble River"] as const;
+export const COMPOSITIONS = ["Solar Vortex", "Twin Bloom", "Silk Current", "Orbital Halo", "Drifting Nebula", "Touch Echo", "Rose Lattice", "Constellation Weave", "Celestial Muse", "Sacred Lattice", "Chrysanthemum Bloom", "Art Deco Fan", "Marble River", "Royal Tilework", "Silk Weave", "Stained Glass", "Topographic Relief", "Calligraphic Gesture"] as const;
+export function isSurfaceComposition(composition: number) { return composition >= 13; }
 
 export function simulateParticles(words: [number, number, number, number], features: InteractionFeatures, config: SimulationConfig = DEFAULT_SIMULATION): ParticleFrame {
   const random = mulberry32(mixWords(words));
