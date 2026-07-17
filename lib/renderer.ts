@@ -32,6 +32,25 @@ function drawRoyalOrnament(ctx: CanvasRenderingContext2D, config: RenderConfig) 
   ctx.restore();
 }
 
+function drawPatternMotif(ctx: CanvasRenderingContext2D, composition: number, config: RenderConfig) {
+  if (composition < 9) return;
+  const size = config.size; const accent = config.accent || "#f2c65c"; ctx.save(); ctx.globalCompositeOperation = "lighter"; ctx.strokeStyle = accent; ctx.shadowColor = accent; ctx.shadowBlur = size * .007; ctx.lineWidth = size * .00038; ctx.globalAlpha = .22;
+  if (composition === 9) {
+    const radius = size * .055, dx = radius * 1.5, dy = radius * 1.3;
+    for (let row = -1; row < 10; row++) for (let column = -1; column < 10; column++) { const x = size * .08 + column * dx + (row & 1 ? dx * .5 : 0), y = size * .08 + row * dy; ctx.beginPath(); for (let side = 0; side <= 6; side++) { const a = Math.PI / 6 + side * Math.PI / 3; const px = x + Math.cos(a) * radius, py = y + Math.sin(a) * radius; if (!side) ctx.moveTo(px, py); else ctx.lineTo(px, py); } ctx.stroke(); }
+  }
+  if (composition === 10) {
+    for (let petal = 0; petal < 20; petal++) { const a = petal * Math.PI * 2 / 20, radius = size * (.34 + (petal % 3) * .035); ctx.beginPath(); ctx.ellipse(size / 2 + Math.cos(a) * radius * .42, size / 2 + Math.sin(a) * radius * .42, size * .04, radius, a, 0, Math.PI * 2); ctx.stroke(); }
+  }
+  if (composition === 11) {
+    const ox = size * .5, oy = size * .86; for (let ring = 1; ring < 8; ring++) { ctx.beginPath(); ctx.arc(ox, oy, size * (.08 + ring * .06), Math.PI * 1.1, Math.PI * 1.9); ctx.stroke(); } for (let ray = 0; ray < 22; ray++) { const a = Math.PI * (1.1 + ray * .8 / 21); ctx.beginPath(); ctx.moveTo(ox, oy); ctx.lineTo(ox + Math.cos(a) * size * .5, oy + Math.sin(a) * size * .5); ctx.stroke(); }
+  }
+  if (composition === 12) {
+    for (let line = 0; line < 13; line++) { ctx.beginPath(); for (let step = 0; step <= 80; step++) { const x = step / 80 * size; const y = size * (.1 + line * .065) + Math.sin(step * .19 + line * .83) * size * .035 + Math.sin(step * .53 - line) * size * .012; if (!step) ctx.moveTo(x, y); else ctx.lineTo(x, y); } ctx.stroke(); }
+  }
+  ctx.restore();
+}
+
 export function renderArtwork(canvas: HTMLCanvasElement, frame: ParticleFrame, config: RenderConfig = DEFAULT_RENDER): void {
   canvas.width = config.size; canvas.height = config.size;
   const ctx = canvas.getContext("2d", { alpha: false }); if (!ctx) return;
@@ -94,6 +113,7 @@ export function renderArtwork(canvas: HTMLCanvasElement, frame: ParticleFrame, c
     const x = frame.taps[i] * config.size, y = frame.taps[i + 1] * config.size; const base = config.size * (.007 + (i % 6) * .0015);
     for (let ring = 1; ring <= 3; ring++) { ctx.strokeStyle = `rgba(${ring === 2 ? "255,100,185" : "255,222,126"},${.2 / ring})`; ctx.lineWidth = config.size * .00045; ctx.shadowColor = ring === 2 ? "#ff5ca8" : "#ffd978"; ctx.shadowBlur = config.size * .006; ctx.beginPath(); ctx.arc(x, y, base * ring, 0, Math.PI * 2); ctx.stroke(); }
   }
+  drawPatternMotif(ctx, frame.composition, config);
   drawRoyalOrnament(ctx, config);
   ctx.shadowBlur = 0;
   ctx.globalCompositeOperation = "source-over";

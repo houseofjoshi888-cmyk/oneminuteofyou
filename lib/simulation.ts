@@ -5,7 +5,7 @@ export interface SimulationConfig { particleCount: number; steps: number; fieldS
 export const DEFAULT_SIMULATION: SimulationConfig = { particleCount: 100_000, steps: 54, fieldScale: 3.2, stepLength: 0.0018, turbulence: 0.54 };
 export const PREVIEW_SIMULATION: SimulationConfig = { ...DEFAULT_SIMULATION, particleCount: 18_000, steps: 32 };
 export interface ParticleFrame { starts: Float32Array; ends: Float32Array; tones: Uint8Array; trace: Float32Array; taps: Float32Array; composition: number; }
-export const COMPOSITIONS = ["Solar Vortex", "Twin Bloom", "Silk Current", "Orbital Halo", "Drifting Nebula", "Touch Echo", "Rose Lattice", "Constellation Weave", "Celestial Muse"] as const;
+export const COMPOSITIONS = ["Solar Vortex", "Twin Bloom", "Silk Current", "Orbital Halo", "Drifting Nebula", "Touch Echo", "Rose Lattice", "Constellation Weave", "Celestial Muse", "Sacred Lattice", "Chrysanthemum Bloom", "Art Deco Fan", "Marble River"] as const;
 
 export function simulateParticles(words: [number, number, number, number], features: InteractionFeatures, config: SimulationConfig = DEFAULT_SIMULATION): ParticleFrame {
   const random = mulberry32(mixWords(words));
@@ -23,7 +23,19 @@ export function simulateParticles(words: [number, number, number, number], featu
     const angle = random() * Math.PI * 2;
     const radius = Math.pow(random(), 0.67) * 0.46;
     let x: number, y: number;
-    if (composition === 8) {
+    if (composition === 9) {
+      const spacing = .075 + (words[1] % 4) * .008; const column = Math.floor(random() * 12) - 2; const row = Math.floor(random() * 12) - 2;
+      x = .5 + column * spacing + (row & 1 ? spacing * .5 : 0) + (random() - .5) * .018; y = .5 + row * spacing * .866 + (random() - .5) * .018;
+    } else if (composition === 10) {
+      const petals = 8 + (words[1] % 9); const petalAngle = angle + phase; const petalRadius = .08 + Math.pow(random(), .72) * (.18 + Math.abs(Math.sin(petalAngle * petals)) * .19);
+      x = .5 + Math.cos(petalAngle) * petalRadius; y = .5 + Math.sin(petalAngle) * petalRadius;
+    } else if (composition === 11) {
+      const fanAngle = Math.PI * (1.12 + random() * .76) + tilt; const fanRadius = .05 + Math.pow(random(), .58) * .55;
+      x = .5 + Math.cos(fanAngle) * fanRadius; y = .84 + Math.sin(fanAngle) * fanRadius * .86;
+    } else if (composition === 12) {
+      x = random(); const river = Math.floor(random() * (6 + words[1] % 5));
+      y = .1 + river * .11 + Math.sin(x * (8 + arms) + phase + river * .83) * .055 + Math.sin(x * 31 - phase) * .014 + (random() - .5) * .016;
+    } else if (composition === 8) {
       if (random() < .34) {
         const contour: [number, number][] = [[.46,.16],[.41,.23],[.4,.31],[.33,.37],[.29,.405],[.38,.42],[.34,.46],[.395,.485],[.42,.56],[.48,.66],[.55,.77]];
         const position = random() * (contour.length - 1); const index = Math.floor(position); const amount = position - index; const next = Math.min(contour.length - 1, index + 1);
@@ -73,7 +85,16 @@ export function simulateParticles(words: [number, number, number, number], featu
       const cx = x - 0.5, cy = y - 0.5;
       const polar = Math.atan2(cy, cx), r = Math.hypot(cx, cy);
       let field: number;
-      if (composition === 8) {
+      if (composition === 9) {
+        const gridAngle = Math.round((polar + phase) / (Math.PI / 3)) * Math.PI / 3; field = gridAngle + Math.sin((x + y) * 36 + phase) * .18;
+      } else if (composition === 10) {
+        const petals = 8 + (words[1] % 9); const targetRadius = .09 + Math.abs(Math.sin(polar * petals + phase)) * .27;
+        field = polar + Math.PI / 2 + (targetRadius - r) * 4.8 + Math.sin(polar * petals * 2 + phase) * .23;
+      } else if (composition === 11) {
+        const originX = x - .5, originY = y - .84; const fanPolar = Math.atan2(originY, originX); field = fanPolar + Math.PI / 2 + Math.sin(fanPolar * (6 + arms) + phase) * .22;
+      } else if (composition === 12) {
+        field = Math.sin(x * (10 + arms) + phase) * .23 + Math.cos(y * 22 - phase) * .07 + tilt;
+      } else if (composition === 8) {
         const hairX = x - .58, hairY = y - .45; const hairPolar = Math.atan2(hairY, hairX); const facePull = Math.atan2(.44 - y, .39 - x);
         field = hairPolar + Math.PI / 2 + Math.sin(hairPolar * (4 + arms) + Math.hypot(hairX, hairY) * 29 + phase) * .5;
         if (x < .48) field = Math.atan2(Math.sin(field) * .35 + Math.sin(facePull) * .65, Math.cos(field) * .35 + Math.cos(facePull) * .65);
@@ -102,7 +123,7 @@ export function simulateParticles(words: [number, number, number, number], featu
         const wave = Math.sin((polar * arms) + r * config.fieldScale * 20 + phase);
         field = polar + Math.PI / 2 + wave * config.turbulence + Math.sin(y * 19 + x * 11) * 0.12 * entropy;
       }
-      if (composition < 5 || composition === 8) {
+      if (composition < 5 || composition === 8 || composition === 9 || composition === 10 || composition === 11 || composition === 12) {
         const traceIndex = (i + step * 7) % traceCount; const pullAngle = Math.atan2(trace[traceIndex * 2 + 1] - y, trace[traceIndex * 2] - x);
         const pull = .06 + Math.min(.2, features.averageCurvature * .0015) + features.pressureMean * .08;
         field = Math.atan2(Math.sin(field) + Math.sin(pullAngle) * pull, Math.cos(field) + Math.cos(pullAngle) * pull);
