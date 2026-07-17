@@ -81,3 +81,5 @@ h1 em { color:transparent; background:linear-gradient(92deg,var(--gold) 2%,#ff81
 @keyframes living-breath{0%,100%{filter:saturate(.92) brightness(.94)}50%{filter:saturate(1.14) brightness(1.06)}}
 @keyframes seal-ring{to{transform:rotate(360deg)}}
 @keyframes reveal-drift{to{transform:translateY(-80px)}}
+
+.base-mint{display:grid;gap:10px;margin-top:14px;padding:14px;border:1px solid #ffffff18;background:#0a090da6}.base-mint label{display:grid;gap:7px;color:#d8c99f;font:500 8px/1 var(--font-mono);text-transform:uppercase;letter-spacing:.1em}.base-mint input{width:100%;border:1px solid #ffffff25;background:#050409;color:#f6ebd1;padding:11px;font:400 11px/1.2 var(--font-mono);outline:none}.base-mint small{color:#888077;font:300 9px/1.6 var(--font-mono)}

@@ -13,6 +13,7 @@ import { renderArtwork, renderConfigForHouse } from "@/lib/renderer";
 import { COMPOSITIONS, DEFAULT_SIMULATION, isSurfaceComposition, SURFACE_SIMULATION, simulateParticles } from "@/lib/simulation";
 import { exportProvenanceCertificate } from "@/lib/provenance";
 import { royalChronicle } from "@/lib/chronicle";
+import { BaseMintButton } from "@/components/BaseMintButton";
 
 interface Result { features: InteractionFeatures; hash: string; words: [number, number, number, number]; }
 
@@ -50,6 +51,7 @@ export default function MintPage() {
         <Stats features={result.features} />
         {actionError && <p className="action-error" role="alert">{actionError}</p>}
         <div className="result-actions"><button className="primary-button" onClick={highRes} disabled={exporting}>{exporting ? "Rendering royal NFT…" : "Export royal artwork"}<span>↓</span></button><button className="secondary-button living-export" onClick={livingLoop} disabled={recordingLoop || !livingCanvas}>{recordingLoop ? "Recording 12-second cycle…" : "Export living NFT loop"}</button><button className="secondary-button" onClick={() => metadata && exportMetadata(metadata, `${title.toLowerCase().replaceAll(" ", "-")}-${result.hash.slice(0, 8)}.json`)}>Royal metadata</button><button className="secondary-button" onClick={() => exportProvenanceCertificate(result.hash, title, house.name, house.primary, house.secondary)}>Provenance certificate</button></div>
+        <BaseMintButton seedHash={`0x${result.hash}`} />
         <pre className="metadata">{JSON.stringify(metadata, null, 2)}</pre>
       </section>
     </div>
