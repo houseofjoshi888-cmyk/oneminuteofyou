@@ -52,15 +52,21 @@ export function renderArtwork(canvas: HTMLCanvasElement, frame: ParticleFrame, c
   const palette = config.palette || [[config.gold[0], config.gold[1], config.gold[2]], [255, 92, 170], [97, 206, 220], [142, 110, 255]];
   const count = frame.tones.length;
   const toneBins = 24;
-  const paths = Array.from({ length: toneBins }, () => new Path2D());
+  const supportsPath2D = typeof Path2D !== "undefined";
+  const paths = supportsPath2D ? Array.from({ length: toneBins }, () => new Path2D()) : null;
   for (let i = 0; i < count; i++) {
     const tone = frame.tones[i] / 255;
     const sx = frame.starts[i * 2] * config.size, sy = frame.starts[i * 2 + 1] * config.size, ex = frame.ends[i * 2] * config.size, ey = frame.ends[i * 2 + 1] * config.size;
     const dx = ex - sx, dy = ey - sy; const bend = (((frame.tones[(i + 31) % count] / 255) - .5) * .34) + (frame.composition === 8 ? .12 : 0);
-    const path = paths[Math.min(toneBins - 1, Math.floor(tone * toneBins))]; path.moveTo(sx, sy); path.quadraticCurveTo((sx + ex) * .5 - dy * bend, (sy + ey) * .5 + dx * bend, ex, ey);
+    if (paths) {
+      const path = paths[Math.min(toneBins - 1, Math.floor(tone * toneBins))]; path.moveTo(sx, sy); path.quadraticCurveTo((sx + ex) * .5 - dy * bend, (sy + ey) * .5 + dx * bend, ex, ey);
+    } else {
+      const scaled = tone * (palette.length - 1); const left = Math.floor(scaled); const color = mix(palette[left], palette[Math.min(palette.length - 1, left + 1)], scaled - left);
+      ctx.strokeStyle = `rgba(${color[0]},${color[1]},${color[2]},${config.lineAlpha * (.48 + tone * .8)})`; ctx.lineWidth = config.lineWidth * (.65 + tone * .8); ctx.beginPath(); ctx.moveTo(sx, sy); ctx.quadraticCurveTo((sx + ex) * .5 - dy * bend, (sy + ey) * .5 + dx * bend, ex, ey); ctx.stroke();
+    }
   }
   ctx.shadowBlur = 0;
-  for (let bin = 0; bin < toneBins; bin++) {
+  for (let bin = 0; paths && bin < toneBins; bin++) {
     const tone = (bin + .5) / toneBins; const scaled = tone * (palette.length - 1); const left = Math.floor(scaled); const color = mix(palette[left], palette[Math.min(palette.length - 1, left + 1)], scaled - left);
     ctx.strokeStyle = `rgba(${color[0]},${color[1]},${color[2]},${config.lineAlpha * (.48 + tone * .8)})`; ctx.lineWidth = config.lineWidth * (.65 + tone * .8); ctx.stroke(paths[bin]);
   }

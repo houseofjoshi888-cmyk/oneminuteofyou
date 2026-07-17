@@ -36,17 +36,19 @@ export function createMetadata(hash: string, features: InteractionFeatures, simu
   ] };
 }
 
-function download(blob: Blob, name: string) { const url = URL.createObjectURL(blob); const anchor = document.createElement("a"); anchor.href = url; anchor.download = name; anchor.click(); setTimeout(() => URL.revokeObjectURL(url), 1000); }
+function download(blob: Blob, name: string) { const url = URL.createObjectURL(blob); const anchor = document.createElement("a"); anchor.href = url; anchor.download = name; anchor.style.display = "none"; document.body.appendChild(anchor); anchor.click(); anchor.remove(); setTimeout(() => URL.revokeObjectURL(url), 1000); }
 export function exportPng(canvas: HTMLCanvasElement, name: string) { canvas.toBlob(blob => { if (blob) download(blob, name); }, "image/png"); }
 export function exportMetadata(metadata: ArtworkMetadata, name: string) { download(new Blob([JSON.stringify(metadata, null, 2)], { type: "application/json" }), name); }
 export function exportLivingLoop(canvas: HTMLCanvasElement, name: string, duration = 12_000): Promise<void> {
   return new Promise((resolve, reject) => {
     if (!("captureStream" in canvas) || typeof MediaRecorder === "undefined") { reject(new Error("Living loop export is not supported in this browser.")); return; }
-    const stream = canvas.captureStream(30); const chunks: BlobPart[] = [];
-    const recorder = new MediaRecorder(stream, { mimeType: MediaRecorder.isTypeSupported("video/webm;codecs=vp9") ? "video/webm;codecs=vp9" : "video/webm" });
-    recorder.ondataavailable = event => { if (event.data.size) chunks.push(event.data); };
-    recorder.onerror = () => reject(new Error("Unable to record the living loop."));
-    recorder.onstop = () => { download(new Blob(chunks, { type: "video/webm" }), name); stream.getTracks().forEach(track => track.stop()); resolve(); };
-    recorder.start(); window.setTimeout(() => recorder.stop(), duration);
+    try {
+      const stream = canvas.captureStream(30); const chunks: BlobPart[] = [];
+      const recorder = new MediaRecorder(stream, { mimeType: MediaRecorder.isTypeSupported("video/webm;codecs=vp9") ? "video/webm;codecs=vp9" : "video/webm" });
+      recorder.ondataavailable = event => { if (event.data.size) chunks.push(event.data); };
+      recorder.onerror = () => { stream.getTracks().forEach(track => track.stop()); reject(new Error("Unable to record the living loop.")); };
+      recorder.onstop = () => { download(new Blob(chunks, { type: "video/webm" }), name); stream.getTracks().forEach(track => track.stop()); resolve(); };
+      recorder.start(); window.setTimeout(() => { if (recorder.state !== "inactive") recorder.stop(); }, duration);
+    } catch { reject(new Error("Living loop export is not supported in this browser.")); }
   });
 }

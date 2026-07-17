@@ -13,7 +13,7 @@ const transports = { [mainnet.id]: http(), [base.id]: http(), [polygon.id]: http
 const walletConnectProjectId = process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID;
 const config = walletConnectProjectId
   ? getDefaultConfig({ appName: "One Minute of You", projectId: walletConnectProjectId, chains, transports, ssr: true })
-  : createConfig({ chains, connectors: [injected()], transports, ssr: true });
+  : createConfig({ chains, connectors: [injected({ shimDisconnect: true })], transports, ssr: true, multiInjectedProviderDiscovery: false });
 
 export default function WalletProviders({ children }: { children: ReactNode }) {
   const [queryClient] = useState(() => new QueryClient());
