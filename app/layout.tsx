@@ -15,7 +15,7 @@ export const metadata: Metadata = {
     type: "website",
     title: "One Minute of You",
     description: "Every minute enters a Royal House.",
-    images: [{ url: "/og-royal.png", width: 1200, height: 630, alt: "One Minute of You — The Royal Houses." }],
+    images: [{ url: "/og-royal.png", width: 1731, height: 909, alt: "One Minute of You — Your movement made visible." }],
   },
   twitter: { card: "summary_large_image", title: "One Minute of You", description: "Every minute enters a Royal House.", images: ["/og-royal.png"] },
 };
