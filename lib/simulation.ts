@@ -1,5 +1,6 @@
 import { mixWords, mulberry32 } from "./random";
 import type { InteractionFeatures } from "./analyzer";
+import { scientificSignature } from "./science";
 
 export interface SimulationConfig { particleCount: number; steps: number; fieldScale: number; stepLength: number; turbulence: number; }
 export const DEFAULT_SIMULATION: SimulationConfig = { particleCount: 100_000, steps: 54, fieldScale: 3.2, stepLength: 0.0018, turbulence: 0.54 };
@@ -8,14 +9,19 @@ export const SURFACE_SIMULATION: SimulationConfig = { ...DEFAULT_SIMULATION, par
 export interface ParticleFrame { starts: Float32Array; ends: Float32Array; tones: Uint8Array; trace: Float32Array; taps: Float32Array; composition: number; }
 export const COMPOSITIONS = ["Solar Vortex", "Twin Bloom", "Silk Current", "Orbital Halo", "Drifting Nebula", "Touch Echo", "Rose Lattice", "Constellation Weave", "Celestial Muse", "Sacred Lattice", "Chrysanthemum Bloom", "Art Deco Fan", "Marble River", "Royal Tilework", "Silk Weave", "Stained Glass", "Topographic Relief", "Calligraphic Gesture"] as const;
 export function isSurfaceComposition(composition: number) { return composition >= 13; }
+export function compositionFor(words: readonly number[], features: InteractionFeatures) {
+  const science = scientificSignature(features, words);
+  return (words[0] + science.symmetry + Math.floor(science.entropy * 100)) % COMPOSITIONS.length;
+}
 
 export function simulateParticles(words: [number, number, number, number], features: InteractionFeatures, config: SimulationConfig = DEFAULT_SIMULATION): ParticleFrame {
   const random = mulberry32(mixWords(words));
+  const science = scientificSignature(features, words);
   const count = Math.max(1, Math.floor(config.particleCount));
   const starts = new Float32Array(count * 2), ends = new Float32Array(count * 2), tones = new Uint8Array(count);
   const entropy = features.directionEntropy / Math.log2(12);
-  const arms = 3 + (words[1] % 6);
-  const composition = words[0] % COMPOSITIONS.length;
+  const arms = science.harmonicOrder;
+  const composition = compositionFor(words, features);
   const phase = (words[2] / 4294967296) * Math.PI * 2;
   const tilt = ((words[3] / 4294967296) - .5) * 1.2;
   const trace = new Float32Array(features.gestureTrace?.length >= 4 ? features.gestureTrace : [.5, .5, .5, .5]);
@@ -122,15 +128,15 @@ export function simulateParticles(words: [number, number, number, number], featu
         const nx = tapCount ? taps[nodeIndex * 2] : trace[nodeIndex * 2]; const ny = tapCount ? taps[nodeIndex * 2 + 1] : trace[nodeIndex * 2 + 1];
         const toNode = Math.atan2(ny - y, nx - x); field = toNode + Math.sin(step * .32 + phase) * .38 + Math.PI * .08;
       } else {
-        const wave = Math.sin((polar * arms) + r * config.fieldScale * 20 + phase);
-        field = polar + Math.PI / 2 + wave * config.turbulence + Math.sin(y * 19 + x * 11) * 0.12 * entropy;
+        const wave = Math.sin((polar * arms) + r * science.fieldScale * 20 + phase);
+        field = polar + Math.PI / 2 + wave * science.turbulence + Math.sin(y * (19 + science.symmetry) + x * (11 + science.harmonicOrder)) * 0.12 * entropy;
       }
       if (composition < 5 || composition === 8 || composition === 9 || composition === 10 || composition === 11 || composition === 12) {
         const traceIndex = (i + step * 7) % traceCount; const pullAngle = Math.atan2(trace[traceIndex * 2 + 1] - y, trace[traceIndex * 2] - x);
         const pull = .06 + Math.min(.2, features.averageCurvature * .0015) + features.pressureMean * .08;
         field = Math.atan2(Math.sin(field) + Math.sin(pullAngle) * pull, Math.cos(field) + Math.cos(pullAngle) * pull);
       }
-      const length = config.stepLength * (0.72 + random() * 0.56) * (1 + features.averageSpeed * 0.025) * (.9 + features.pressureMean * .3);
+      const length = science.stepLength * (0.72 + random() * 0.56) * (1 + features.averageSpeed * 0.025) * (.9 + features.pressureMean * .3);
       x += Math.cos(field) * length; y += Math.sin(field) * length;
       if (x < 0 || x > 1 || y < 0 || y > 1) break;
     }

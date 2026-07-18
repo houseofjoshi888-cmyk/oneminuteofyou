@@ -2,7 +2,7 @@ import Link from "next/link";
 import { HeroConstellation } from "@/components/HeroConstellation";
 import { Brand } from "@/components/Brand";
 
-const marks = ["MOTION", "RHYTHM", "PAUSE", "DIRECTION", "ROYAL HOUSE"];
+const marks = ["KINEMATICS", "ENTROPY", "CURVATURE", "GEOMETRY", "ROYAL HOUSE"];
 
 export default function Home() {
   return (
@@ -18,7 +18,7 @@ export default function Home() {
         <div className="hero-copy">
           <p className="eyebrow"><span /> GENERATIVE STUDY Nº 01</p>
           <h1>Your movement.<br /><em>Made visible.</em></h1>
-          <p className="lede">Give us sixty seconds of your attention. Every hesitation, sweep, and turn becomes a singular work of generative art—then enters one of five deterministic Royal Houses.</p>
+          <p className="lede">Give us sixty seconds of your attention. Every hesitation, sweep, and turn becomes a singular work of generative art through kinematics, geometry, entropy, and a reproducible SHA-256 seed—then enters one of five deterministic Royal Houses.</p>
           <div className="hero-actions">
             <Link className="primary-button" href="/generate">Begin your minute <span>↗</span></Link>
             <span className="privacy"><b>●</b> Recorded locally<br />Nothing leaves your device</span>
@@ -38,7 +38,7 @@ export default function Home() {
       </section>
 
       <section className="process shell">
-        <p className="process-title">One minute becomes one immutable fingerprint.</p>
+        <p className="process-title">One minute becomes one immutable mathematical fingerprint.</p>
         <div className="process-grid">
           {marks.map((mark, index) => (
             <div className="process-item" key={mark}>

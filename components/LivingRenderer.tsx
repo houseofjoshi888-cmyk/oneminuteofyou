@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { InteractionFeatures } from "@/lib/analyzer";
 import { renderArtwork, renderConfigForHouse } from "@/lib/renderer";
-import { COMPOSITIONS, isSurfaceComposition, PREVIEW_SIMULATION, SURFACE_SIMULATION, simulateParticles } from "@/lib/simulation";
+import { compositionFor, isSurfaceComposition, PREVIEW_SIMULATION, SURFACE_SIMULATION, simulateParticles } from "@/lib/simulation";
 import { royalHouseFromWords } from "@/lib/houses";
 
 export function LivingRenderer({ words, features, onReady }: { words: [number, number, number, number]; features: InteractionFeatures; onReady?: (canvas: HTMLCanvasElement) => void }) {
@@ -20,7 +20,7 @@ export function LivingRenderer({ words, features, onReady }: { words: [number, n
       const base = document.createElement("canvas");
       try {
         setRenderError(false);
-        const composition = words[0] % COMPOSITIONS.length; const frame = simulateParticles(words, features, isSurfaceComposition(composition) ? SURFACE_SIMULATION : PREVIEW_SIMULATION);
+        const frame = simulateParticles(words, features, isSurfaceComposition(compositionFor(words, features)) ? SURFACE_SIMULATION : PREVIEW_SIMULATION);
         renderArtwork(base, frame, { ...renderConfigForHouse(words, 1024), lineAlpha: .24, lineWidth: .55 });
         canvas.width = base.width; canvas.height = base.height;
         const ctx = canvas.getContext("2d"); if (!ctx) throw new Error("Canvas unavailable");
