@@ -17,7 +17,7 @@ export function HeroConstellation() {
     }));
     let pointerX = .5, pointerY = .5, raf = 0;
     const resize = () => { const box = canvas.getBoundingClientRect(); const dpr = Math.min(2, window.devicePixelRatio || 1); canvas.width = Math.max(1, box.width * dpr); canvas.height = Math.max(1, box.height * dpr); };
-    const move = (event: PointerEvent) => { const box = canvas.getBoundingClientRect(); pointerX = (event.clientX - box.left) / box.width; pointerY = (event.clientY - box.top) / box.height; };
+    const move = (event: PointerEvent) => { const box = canvas.getBoundingClientRect(); pointerX = (event.clientX - box.left) / box.width; pointerY = (event.clientY - box.top) / box.height; canvas.parentElement?.style.setProperty("--tilt-x", `${(pointerY - .5) * -9}deg`); canvas.parentElement?.style.setProperty("--tilt-y", `${(pointerX - .5) * 11}deg`); };
     const palette = ["#ffe6a0", "#ff6eb7", "#9a7dff", "#55ded8", "#ffffff"];
     const draw = (ms: number) => {
       const time = reduce ? 0 : ms / 1000; const w = canvas.width, h = canvas.height, scale = Math.min(w, h);
@@ -28,7 +28,7 @@ export function HeroConstellation() {
         for (let i = layer; i < points.length; i += 3) {
           const point = points[i]; const angle = point.angle + time * point.speed * (layer % 2 ? -1 : 1);
           const wave = Math.sin(angle * (3 + layer) + time * .35) * .04;
-          const radius = (point.radius + wave) * scale;
+          const depth = 1 + Math.sin(point.angle * 7 + time * .22) * .12; const radius = (point.radius + wave) * scale * depth;
           const x = cx + Math.cos(angle) * radius; const y = cy + Math.sin(angle) * radius * (.54 + layer * .04);
           const tail = .018 * scale; ctx.moveTo(x, y); ctx.lineTo(x - Math.sin(angle) * tail, y + Math.cos(angle) * tail * .5);
         }
@@ -36,7 +36,7 @@ export function HeroConstellation() {
       }
       for (let i = 0; i < points.length; i += 5) {
         const point = points[i], angle = point.angle + time * point.speed; const pulse = .5 + .5 * Math.sin(time * 1.4 + i);
-        const radius = (point.radius + Math.sin(angle * 4 + time * .3) * .035) * scale;
+        const depth = 1 + Math.sin(point.angle * 9 + time * .28) * .18; const radius = (point.radius + Math.sin(angle * 4 + time * .3) * .035) * scale * depth;
         const x = cx + Math.cos(angle) * radius, y = cy + Math.sin(angle) * radius * .56;
         ctx.globalAlpha = .25 + pulse * .7; ctx.fillStyle = palette[point.tone]; ctx.shadowColor = palette[point.tone]; ctx.shadowBlur = scale * .012;
         ctx.beginPath(); ctx.arc(x, y, point.size * scale * .0015, 0, Math.PI * 2); ctx.fill();

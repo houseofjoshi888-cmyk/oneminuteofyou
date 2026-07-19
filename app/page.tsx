@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { HeroConstellation } from "@/components/HeroConstellation";
+import { HeroSound } from "@/components/HeroSound";
 import { Brand } from "@/components/Brand";
 
 const marks = ["KINEMATICS", "ENTROPY", "CURVATURE", "GEOMETRY", "ROYAL HOUSE"];
@@ -25,15 +26,17 @@ export default function Home() {
           </div>
         </div>
 
-        <div className="hero-art" aria-hidden="true">
+        <div className="hero-art">
           <HeroConstellation />
-          <div className="orbit orbit-a" />
-          <div className="orbit orbit-b" />
-          <div className="orbit orbit-c" />
-          <div className="gold-core" />
+          <div className="orbit orbit-a" aria-hidden="true" />
+          <div className="orbit orbit-b" aria-hidden="true" />
+          <div className="orbit orbit-c" aria-hidden="true" />
+          <div className="gold-core" aria-hidden="true" />
           <span className="art-label label-a">velocity / 0.842</span>
           <span className="art-label label-b">entropy / 2.716</span>
           <span className="art-label label-c">curvature / 0.338</span>
+          <div className="hero-seal" aria-hidden="true"><span>1</span><i>MINUTE</i><b>∞</b></div>
+          <HeroSound />
         </div>
       </section>
 
