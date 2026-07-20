@@ -5,6 +5,7 @@ import { useState } from "react";
 import { Brand } from "@/components/Brand";
 import { HeroConstellation, type ObservatoryPhase } from "@/components/HeroConstellation";
 import { HeroSound } from "@/components/HeroSound";
+import { SiteFooter } from "@/components/SiteFooter";
 
 const phases: { id: ObservatoryPhase; number: string; title: string; detail: string; metric: string }[] = [
   { id: "enter", number: "01", title: "Enter the field", detail: "A living field waits for one quiet minute of your attention.", metric: "FIELD / AWAKE" },
@@ -40,6 +41,6 @@ export function HomeExperience() {
       <div className="ritual-controls" role="tablist" aria-label="Artwork creation stages">{phases.map((item) => <button key={item.id} role="tab" aria-selected={phase === item.id} className={phase === item.id ? "is-active" : ""} onClick={() => setPhase(item.id)}><span>{item.number}</span><strong>{item.title}</strong><i>{item.metric}</i></button>)}</div>
       <div className="ritual-reading"><span>{active.number} / 04</span><h3>{active.title}</h3><p>{active.detail}</p>{phase === "reveal" ? <Link href="/generate" className="text-link">Create your artwork <b>↗</b></Link> : <button className="text-link" onClick={nextPhase}>Continue <b>→</b></button>}</div>
     </section>
-    <section className="process shell" aria-label="The One Minute process"><p className="process-title">ONE MINUTE. ONE SEED. ONE UNIQUE WORK.</p><div className="process-grid">{phases.map((item) => <div className="process-item" key={item.id}><span>{item.number}</span><strong>{item.title.toUpperCase()}</strong><i /></div>)}</div></section>
+    <section className="process shell" aria-label="The One Minute process"><p className="process-title">ONE MINUTE. ONE SEED. ONE UNIQUE WORK.</p><div className="process-grid">{phases.map((item) => <div className="process-item" key={item.id}><span>{item.number}</span><strong>{item.title.toUpperCase()}</strong><i /></div>)}</div></section><SiteFooter />
   </main>;
 }

@@ -10,13 +10,14 @@ import type { InteractionFeatures } from "@/lib/analyzer";
 import { artworkName, createMetadata, exportLivingLoop, exportMetadata, exportPng, exportSvg } from "@/lib/export";
 import { royalHouseFromWords, royalRarity } from "@/lib/houses";
 import { renderArtwork, renderConfigForHouse } from "@/lib/renderer";
-import { compositionFor, DEFAULT_SIMULATION, isSurfaceComposition, SURFACE_SIMULATION, simulateParticles } from "@/lib/simulation";
+import { compositionFor, DEFAULT_SIMULATION, isSurfaceComposition, PREVIEW_SIMULATION, SURFACE_SIMULATION, simulateParticles } from "@/lib/simulation";
 import { exportProvenanceCertificate } from "@/lib/provenance";
 import { royalChronicle } from "@/lib/chronicle";
 import { BaseMintButton } from "@/components/BaseMintButton";
 import { Brand } from "@/components/Brand";
 import { ScienceSignature } from "@/components/ScienceSignature";
 import { hiddenDiscoveries } from "@/lib/discoveries";
+import { SiteFooter } from "@/components/SiteFooter";
 
 interface Result { features: InteractionFeatures; hash: string; words: [number, number, number, number]; }
 
@@ -32,7 +33,7 @@ export default function MintPage() {
   const livingLoop = useCallback(async () => { if (!result || !livingCanvas) return; setRecordingLoop(true); setActionError(""); try { await exportLivingLoop(livingCanvas, `one-minute-${result.hash.slice(0, 8)}-living.webm`); } catch { setActionError("Living-loop export is not supported by this browser. The PNG and metadata exports still work."); } finally { setRecordingLoop(false); } }, [result, livingCanvas]);
   const vectorExport = useCallback(() => { if (!result) return; const frame = simulateParticles(result.words, result.features, isSurfaceComposition(compositionFor(result.words, result.features)) ? SURFACE_SIMULATION : PREVIEW_SIMULATION); exportSvg(frame, renderConfigForHouse(result.words), `one-minute-${result.hash.slice(0, 8)}.svg`); }, [result]);
 
-  if (!result) return <main className="result-page"><nav className="studio-nav"><Brand /><WalletButton /></nav><section className="result-copy" style={{ maxWidth: 620, margin: "12vh auto" }}><p className="eyebrow"><span /> NO PORTRAIT FOUND</p><h2>Your minute<br /><em>awaits.</em></h2><p className="mint-note">{actionError || "Record a minute first. Your portrait and metadata stay only in this browser session."}</p><Link className="primary-button" href="/generate">Begin recording <span>↗</span></Link></section></main>;
+  if (!result) return <main className="result-page"><nav className="studio-nav"><Brand /><WalletButton /></nav><section className="result-copy" style={{ maxWidth: 620, margin: "12vh auto" }}><p className="eyebrow"><span /> NO PORTRAIT FOUND</p><h2>Your minute<br /><em>awaits.</em></h2><p className="mint-note">{actionError || "Record a minute first. Your portrait and metadata stay only in this browser session."}</p><Link className="primary-button" href="/generate">Begin recording <span>↗</span></Link></section><SiteFooter /></main>;
 
   const title = artworkName(result.hash, result.features);
   const house = royalHouseFromWords(result.words);
@@ -61,6 +62,6 @@ export default function MintPage() {
         <BaseMintButton seedHash={`0x${result.hash}`} />
         <pre className="metadata">{JSON.stringify(metadata, null, 2)}</pre>
       </section>
-    </div>
+    </div><SiteFooter />
   </main>;
 }
