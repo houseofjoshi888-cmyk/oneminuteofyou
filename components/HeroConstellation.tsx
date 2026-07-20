@@ -2,7 +2,9 @@
 
 import { useEffect, useRef } from "react";
 
-export function HeroConstellation() {
+export type ObservatoryPhase = "enter" | "move" | "measure" | "reveal";
+
+export function HeroConstellation({ phase = "enter" }: { phase?: ObservatoryPhase }) {
   const ref = useRef<HTMLCanvasElement>(null);
   useEffect(() => {
     const canvas = ref.current; if (!canvas) return;
@@ -18,7 +20,8 @@ export function HeroConstellation() {
     let pointerX = .5, pointerY = .5, raf = 0;
     const resize = () => { const box = canvas.getBoundingClientRect(); const dpr = Math.min(2, window.devicePixelRatio || 1); canvas.width = Math.max(1, box.width * dpr); canvas.height = Math.max(1, box.height * dpr); };
     const move = (event: PointerEvent) => { const box = canvas.getBoundingClientRect(); pointerX = (event.clientX - box.left) / box.width; pointerY = (event.clientY - box.top) / box.height; canvas.parentElement?.style.setProperty("--tilt-x", `${(pointerY - .5) * -9}deg`); canvas.parentElement?.style.setProperty("--tilt-y", `${(pointerX - .5) * 11}deg`); };
-    const palette = ["#ffe6a0", "#ff6eb7", "#9a7dff", "#55ded8", "#ffffff"];
+    const palette = phase === "reveal" ? ["#fff1b0", "#ff476f", "#32df9a", "#a982ff", "#62dfea"] : ["#ffe6a0", "#ff6eb7", "#9a7dff", "#55ded8", "#ffffff"];
+    const phaseFactor = phase === "move" ? 7 : phase === "measure" ? 11 : phase === "reveal" ? 15 : 4;
     const draw = (ms: number) => {
       const time = reduce ? 0 : ms / 1000; const w = canvas.width, h = canvas.height, scale = Math.min(w, h);
       ctx.clearRect(0, 0, w, h); ctx.globalCompositeOperation = "lighter";
@@ -27,7 +30,7 @@ export function HeroConstellation() {
         ctx.beginPath();
         for (let i = layer; i < points.length; i += 3) {
           const point = points[i]; const angle = point.angle + time * point.speed * (layer % 2 ? -1 : 1);
-          const wave = Math.sin(angle * (3 + layer) + time * .35) * .04;
+          const wave = Math.sin(angle * (phaseFactor + layer) + time * (.35 + phaseFactor * .018)) * (phase === "reveal" ? .075 : .04);
           const depth = 1 + Math.sin(point.angle * 7 + time * .22) * .12; const radius = (point.radius + wave) * scale * depth;
           const x = cx + Math.cos(angle) * radius; const y = cy + Math.sin(angle) * radius * (.54 + layer * .04);
           const tail = .018 * scale; ctx.moveTo(x, y); ctx.lineTo(x - Math.sin(angle) * tail, y + Math.cos(angle) * tail * .5);
@@ -45,6 +48,6 @@ export function HeroConstellation() {
     };
     resize(); window.addEventListener("resize", resize); canvas.addEventListener("pointermove", move); raf = requestAnimationFrame(draw);
     return () => { cancelAnimationFrame(raf); window.removeEventListener("resize", resize); canvas.removeEventListener("pointermove", move); };
-  }, []);
+  }, [phase]);
   return <canvas ref={ref} className="hero-constellation" />;
 }
