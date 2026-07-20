@@ -1,0 +1,16 @@
+import Link from "next/link";
+import { Brand } from "@/components/Brand";
+import { ROYAL_HOUSES } from "@/lib/houses";
+
+const faqs = [
+  ["What is One Minute of You?", "A deterministic generative art collection. A sixty-second interaction becomes measurable motion data, a SHA-256 seed, and a one-of-one work."],
+  ["Am I drawing the artwork?", "No. You introduce a disturbance into a mathematical universe. The artwork is the way that universe settles."],
+  ["Is my motion private?", "Yes. Recording and feature extraction happen in your browser. Only the seed and assets you choose to mint are made public."],
+  ["Why will every work remain reproducible?", "The canonical interaction features are serialized and hashed. The same seed always recreates the same House, algorithm, and artwork."],
+  ["What does the NFT contain?", "Pinned artwork, optional living WebM, metadata, provenance seal, House traits, scientific signature, and behavioural discoveries."],
+];
+
+export default function CollectionPage() {
+  const address = process.env.NEXT_PUBLIC_ONE_MINUTE_NFT_ADDRESS;
+  return <main className="collection-page"><nav className="studio-nav"><Brand /><div className="collection-nav"><Link href="/generate">Begin</Link><Link href="/legal">Terms & privacy</Link></div></nav><section className="collection-intro"><p className="eyebrow"><span /> THE FIRST CHAPTER</p><h1>One Minute<br /><em>of You.</em></h1><p>Every person leaves a different rhythm behind. This collection turns a single minute of that rhythm into a permanent mathematical portrait.</p><Link className="primary-button" href="/generate">Enter the ceremony <span>↗</span></Link></section><section className="collection-manifesto"><p>YOU ARE NOT DRAWING.</p><h2>You are introducing a disturbance into a mathematical universe.</h2><p>The artwork is how that universe settles.</p></section><section className="house-lore" aria-labelledby="houses"><p className="eyebrow"><span /> THE FIVE ROYAL HOUSES</p><h2 id="houses">Five universes.<br /><em>Five ways to settle.</em></h2><div className="house-lore-grid">{ROYAL_HOUSES.map((house) => <article key={house.id} style={{ "--house-primary": house.primary, "--house-secondary": house.secondary } as React.CSSProperties}><small>{house.gemstone.toUpperCase()} · {house.algorithm.toUpperCase()}</small><h3>{house.name}</h3><p>{house.motto}.</p><span>{house.id === "ruby" ? "Volcanic fractures and crystal veins." : house.id === "sapphire" ? "Tides, currents, and flowing particles." : house.id === "emerald" ? "Roots, branching systems, and living forest logic." : house.id === "amethyst" ? "Nebulae, magnetic fields, and mythic orbit." : "Golden ratio, celestial symmetry, and royal architecture."}</span></article>)}</div></section><section className="collection-faq"><p className="eyebrow"><span /> QUESTIONS OF PROVENANCE</p><h2>Before the minute.</h2>{faqs.map(([question, answer]) => <details key={question}><summary>{question}</summary><p>{answer}</p></details>)}</section><section className="collection-links"><Link href="/artwork/1">Enter Museum Mode ↗</Link><Link href="/legal">Read terms & privacy ↗</Link>{address ? <a href={`https://basescan.org/address/${address}`} target="_blank" rel="noreferrer">Verified Base contract ↗</a> : <span>BaseScan link will appear after verified deployment.</span>}</section></main>;
+}

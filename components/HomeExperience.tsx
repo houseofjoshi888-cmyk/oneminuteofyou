@@ -20,7 +20,7 @@ export function HomeExperience() {
 
   return <main className={`landing observatory phase-${phase}`}>
     <div className="ambient ambient-one" /><div className="ambient ambient-two" />
-    <nav className="nav shell" aria-label="Primary navigation"><Brand /><span className="nav-note">A deterministic portrait of attention</span></nav>
+    <nav className="nav shell" aria-label="Primary navigation"><Brand /><span className="nav-note"><Link href="/collection">Collection story</Link> · A deterministic portrait of attention</span></nav>
     <section className="hero shell">
       <div className="hero-copy">
         <p className="eyebrow"><span /> ONE MINUTE OF YOU</p>
