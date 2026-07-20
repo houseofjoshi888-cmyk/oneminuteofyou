@@ -6,5 +6,9 @@ export const oneMinuteContractAddress = configuredAddress && /^0x[a-fA-F0-9]{40}
 export const oneMinuteContractAbi = [
   { type: "function", name: "mintPrice", stateMutability: "view", inputs: [], outputs: [{ type: "uint256" }] },
   { type: "function", name: "publicMintOpen", stateMutability: "view", inputs: [], outputs: [{ type: "bool" }] },
+  { type: "function", name: "owner", stateMutability: "view", inputs: [], outputs: [{ type: "address" }] },
+  { type: "function", name: "ownerOf", stateMutability: "view", inputs: [{ name: "tokenId", type: "uint256" }], outputs: [{ type: "address" }] },
+  { type: "function", name: "tokenURI", stateMutability: "view", inputs: [{ name: "tokenId", type: "uint256" }], outputs: [{ type: "string" }] },
   { type: "function", name: "mintOneMinute", stateMutability: "payable", inputs: [{ name: "seedHash", type: "bytes32" }, { name: "metadataURI", type: "string" }], outputs: [{ type: "uint256" }] },
+  { type: "function", name: "ownerMint", stateMutability: "nonpayable", inputs: [{ name: "collector", type: "address" }, { name: "seedHash", type: "bytes32" }, { name: "metadataURI", type: "string" }], outputs: [{ type: "uint256" }] },
 ] as const;
