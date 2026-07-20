@@ -42,9 +42,9 @@ export function Recorder({ onComplete }: RecorderProps) {
   return <div className="studio-stage">
     <Canvas ref={canvasRef} className="capture-canvas" aria-label="Interaction recording canvas" onContextMenu={event => event.preventDefault()} onPointerMove={event => capture(event, "move")} onPointerDown={event => capture(event, "down")} onPointerUp={event => capture(event, "up")} onPointerCancel={event => capture(event, "up")} />
     <div className="studio-overlay">
-      {!active && <div className="studio-intro"><p className="eyebrow"><span /> YOUR CANVAS IS READY</p><h2>Move as you think.</h2><p>Draw, hover, pause, tap. There is no right gesture.</p></div>}
+      {!active && <div className="studio-intro"><p className="eyebrow"><span /> THE MINUTE AWAITS</p><h2>Disturb the field.</h2><p>Move, hover, pause, or tap. There is no right gesture.</p></div>}
       <Countdown remainingMs={remaining} active={active} />
-      {!active && <button className="record-button" onClick={start}>Start 60-second recording</button>}
+      {!active && <button className="record-button" onClick={start}>Begin the minute</button>}
       <div className="capture-bottom"><span className="capture-hint"><b>Move anywhere</b><br />mouse · touch · pen</span><span className="live-samples">{sampleCount.toLocaleString()} signals<br />captured locally</span></div>
     </div>
   </div>;

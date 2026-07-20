@@ -2,7 +2,7 @@ import type { ParticleFrame } from "./simulation";
 import { royalHouseFromWords } from "./houses";
 
 type RGB = [number, number, number];
-export interface RenderConfig { size: number; background: string; gold: RGB; palette?: RGB[]; lineAlpha: number; lineWidth: number; ornament?: "arch" | "stars" | "lattice" | "lotus" | "sunburst"; accent?: string; }
+export interface RenderConfig { size: number; background: string; gold: RGB; palette?: RGB[]; lineAlpha: number; lineWidth: number; ornament?: "arch" | "stars" | "lattice" | "lotus" | "sunburst"; accent?: string; algorithm?: "Crystal Growth" | "Flow Fields" | "Fractal Roots" | "Magnetic Nebula" | "Sacred Geometry"; }
 export const DEFAULT_RENDER: RenderConfig = {
   size: 4096,
   background: "#05040a",
@@ -14,7 +14,7 @@ export const DEFAULT_RENDER: RenderConfig = {
 
 export function renderConfigForHouse(words: readonly number[], size = 4096): RenderConfig {
   const house = royalHouseFromWords(words);
-  return { ...DEFAULT_RENDER, size, background: house.background, gold: house.palette[0], palette: house.palette, ornament: house.ornament, accent: house.primary };
+  return { ...DEFAULT_RENDER, size, background: house.background, gold: house.palette[0], palette: house.palette, ornament: house.ornament, accent: house.primary, algorithm: house.algorithm };
 }
 
 function mix(a: RGB, b: RGB, amount: number): RGB {
@@ -51,6 +51,30 @@ function drawPatternMotif(ctx: CanvasRenderingContext2D, composition: number, co
   ctx.restore();
 }
 
+// Each House begins with a distinct mathematical world; the motion field then disturbs it.
+function drawHouseWorld(ctx: CanvasRenderingContext2D, config: RenderConfig) {
+  const size = config.size; const accent = config.accent || "#f2c65c"; const palette = config.palette || [config.gold];
+  ctx.save(); ctx.globalCompositeOperation = "lighter"; ctx.lineCap = "round";
+  if (config.algorithm === "Crystal Growth") {
+    ctx.strokeStyle = accent; ctx.lineWidth = size * .0005; ctx.globalAlpha = .23;
+    for (let ring = 0; ring < 18; ring++) { const radius = size * (.06 + ring * .023); ctx.beginPath(); for (let k = 0; k <= 6; k++) { const a = -Math.PI / 2 + k * Math.PI / 3; const x = size / 2 + Math.cos(a) * radius; const y = size / 2 + Math.sin(a) * radius; if (!k) ctx.moveTo(x, y); else ctx.lineTo(x, y); } ctx.stroke(); }
+    for (let ray = 0; ray < 6; ray++) { const a = ray * Math.PI / 3; ctx.beginPath(); ctx.moveTo(size / 2, size / 2); ctx.lineTo(size / 2 + Math.cos(a) * size * .42, size / 2 + Math.sin(a) * size * .42); ctx.stroke(); }
+  } else if (config.algorithm === "Flow Fields") {
+    ctx.lineWidth = size * .0011; for (let line = 0; line < 36; line++) { const color = palette[line % palette.length]; ctx.strokeStyle = `rgb(${color[0]},${color[1]},${color[2]})`; ctx.globalAlpha = .12; ctx.beginPath(); for (let step = 0; step <= 90; step++) { const x = step / 90 * size; const y = size * (.03 + line * .027) + Math.sin(step * .19 + line * .63) * size * .042 + Math.cos(step * .053 - line) * size * .021; if (!step) ctx.moveTo(x, y); else ctx.lineTo(x, y); } ctx.stroke(); }
+  } else if (config.algorithm === "Fractal Roots") {
+    ctx.strokeStyle = accent; ctx.globalAlpha = .2; ctx.lineWidth = size * .0007;
+    const branch = (x: number, y: number, angle: number, length: number, depth: number) => { if (!depth) return; const ex = x + Math.cos(angle) * length, ey = y + Math.sin(angle) * length; ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(ex, ey); ctx.stroke(); branch(ex, ey, angle - .47, length * .68, depth - 1); branch(ex, ey, angle + .39, length * .63, depth - 1); };
+    branch(size * .5, size * .93, -Math.PI / 2, size * .22, 7); branch(size * .2, size * .9, -1.1, size * .15, 5); branch(size * .8, size * .9, -2.0, size * .15, 5);
+  } else if (config.algorithm === "Magnetic Nebula") {
+    for (let ring = 0; ring < 28; ring++) { const color = palette[ring % palette.length]; ctx.strokeStyle = `rgb(${color[0]},${color[1]},${color[2]})`; ctx.globalAlpha = .1; ctx.lineWidth = size * .00045; ctx.beginPath(); for (let step = 0; step <= 150; step++) { const a = step / 150 * Math.PI * 2; const radius = size * (.09 + ring * .012 + Math.sin(a * 3 + ring) * .016); const x = size * .5 + Math.cos(a + ring * .13) * radius * 1.45; const y = size * .5 + Math.sin(a + ring * .13) * radius * .68; if (!step) ctx.moveTo(x, y); else ctx.lineTo(x, y); } ctx.stroke(); }
+  } else if (config.algorithm === "Sacred Geometry") {
+    ctx.strokeStyle = accent; ctx.globalAlpha = .17; ctx.lineWidth = size * .0005; const phi = (1 + Math.sqrt(5)) / 2;
+    for (let i = 0; i < 180; i++) { const angle = i * Math.PI * 2 / (phi * phi); const radius = Math.sqrt(i / 180) * size * .39; const x = size / 2 + Math.cos(angle) * radius, y = size / 2 + Math.sin(angle) * radius; ctx.beginPath(); ctx.arc(x, y, size * .008, 0, Math.PI * 2); ctx.stroke(); }
+    for (let r = 1; r < 6; r++) { ctx.beginPath(); ctx.arc(size / 2, size / 2, size * r * .07, 0, Math.PI * 2); ctx.stroke(); }
+  }
+  ctx.restore();
+}
+
 function drawSurfacePattern(ctx: CanvasRenderingContext2D, frame: ParticleFrame, config: RenderConfig, palette: RGB[]) {
   const size = config.size; const tone = (index: number) => frame.tones[index % frame.tones.length] / 255; const color = (index: number) => palette[Math.min(palette.length - 1, Math.floor(tone(index) * palette.length))];
   ctx.save(); ctx.globalCompositeOperation = "source-over";
@@ -83,6 +107,7 @@ export function renderArtwork(canvas: HTMLCanvasElement, frame: ParticleFrame, c
   ctx.fillStyle = aura; ctx.fillRect(0, 0, config.size, config.size);
   ctx.lineCap = "round"; ctx.globalCompositeOperation = "lighter";
   const palette = config.palette || [[config.gold[0], config.gold[1], config.gold[2]], [255, 92, 170], [97, 206, 220], [142, 110, 255]];
+  drawHouseWorld(ctx, config);
   if (frame.composition >= 13) {
     drawSurfacePattern(ctx, frame, config, palette); drawRoyalOrnament(ctx, config); ctx.globalCompositeOperation = "source-over";
     const vignette = ctx.createRadialGradient(config.size / 2, config.size / 2, config.size * .25, config.size / 2, config.size / 2, config.size * .72); vignette.addColorStop(0, "transparent"); vignette.addColorStop(1, "rgba(0,0,0,.52)"); ctx.fillStyle = vignette; ctx.fillRect(0, 0, config.size, config.size); return;
