@@ -75,6 +75,44 @@ function drawHouseWorld(ctx: CanvasRenderingContext2D, config: RenderConfig) {
   ctx.restore();
 }
 
+function drawHouseSigil(ctx: CanvasRenderingContext2D, frame: ParticleFrame, config: RenderConfig) {
+  const s = config.size, cx = s / 2, cy = s / 2, accent = config.accent || "#f2c65c";
+  const seed = (index: number) => frame.tones[index % frame.tones.length] / 255;
+  const path = (points: [number, number][], color = accent, width = .00115, alpha = .72) => {
+    ctx.beginPath(); points.forEach(([x,y], i) => i ? ctx.lineTo(x*s,y*s) : ctx.moveTo(x*s,y*s));
+    ctx.strokeStyle = color; ctx.lineWidth = s * width; ctx.globalAlpha = alpha; ctx.shadowColor = color; ctx.shadowBlur = s * .006; ctx.stroke();
+  };
+  ctx.save(); ctx.globalCompositeOperation = "lighter"; ctx.lineCap = "round"; ctx.lineJoin = "round";
+  // Fine astrolabe framework shared by all Houses.
+  ctx.strokeStyle = "#d5ae62"; ctx.lineWidth = s * .00042; ctx.globalAlpha = .42;
+  for (let ring = 1; ring <= 7; ring++) { ctx.beginPath(); ctx.arc(cx, cy, s * (.055 + ring * .047), 0, Math.PI * 2); ctx.stroke(); }
+  ctx.beginPath(); ctx.moveTo(s*.035,cy); ctx.lineTo(s*.965,cy); ctx.moveTo(cx,s*.035); ctx.lineTo(cx,s*.965); ctx.stroke();
+  for (let i=0;i<8;i++){ const a=i*Math.PI/4, r=s*.43; ctx.beginPath(); ctx.arc(cx+Math.cos(a)*r,cy+Math.sin(a)*r,s*(.004+seed(i)*.004),0,Math.PI*2); ctx.stroke(); }
+
+  if (config.algorithm === "Crystal Growth") {
+    // Ruby: an explosive diagonal fault line crossing a fiery orbital bloom.
+    for(let band=0;band<13;band++){const off=(band-6)*.007; const pts:[number,number][]=[]; for(let i=0;i<=90;i++){const t=i/90;pts.push([.09+t*.82,.82-t*.67+Math.sin(t*12+seed(band)*6)*(.012+Math.abs(off))+off]);} path(pts,band%3===0?"#f5c66d":accent,.0005+seed(band)*.00055,.25+seed(band)*.32);}
+    for(let arm=0;arm<5;arm++){const pts:[number,number][]=[];for(let i=0;i<=100;i++){const t=i/100,a=arm*1.28+t*4.7+seed(arm)*.6,r=.055+t*.37;pts.push([.5+Math.cos(a)*r,.5+Math.sin(a)*r*(.72+seed(arm)*.28)]);}path(pts,arm%2?accent:"#f0bc63",.0007,.5);}
+  } else if (config.algorithm === "Flow Fields") {
+    // Sapphire: a luminous S-current held inside a celestial sphere.
+    for(let band=0;band<18;band++){const pts:[number,number][]=[];const off=(band-8.5)*.004;for(let i=0;i<=140;i++){const t=i/140;const y=.1+t*.8;const x=.5+Math.sin(t*Math.PI*2+Math.PI/2)*(.17+seed(band)*.035)+off;pts.push([x,y]);}path(pts,band%4===0?"#e7c878":accent,.00055+seed(band)*.00035,.25+seed(band)*.3);}
+    ctx.globalAlpha=.3;for(let r=0;r<5;r++){ctx.beginPath();ctx.ellipse(cx,cy,s*(.22+r*.045),s*(.16+r*.05),seed(r)*.5,0,Math.PI*2);ctx.stroke();}
+  } else if (config.algorithm === "Fractal Roots") {
+    // Emerald: opposing living branches form a seeded yin-yang.
+    const branch=(x:number,y:number,a:number,len:number,depth:number,side:number)=>{if(!depth)return;const ex=x+Math.cos(a)*len,ey=y+Math.sin(a)*len;path([[x/s,y/s],[ex/s,ey/s]],depth%2?accent:"#e8c86f",.00045+depth*.00008,.25+depth*.055);branch(ex,ey,a-side*(.28+seed(depth)*.18),len*.72,depth-1,side);branch(ex,ey,a+side*(.42+seed(depth+3)*.13),len*.62,depth-1,side);};
+    branch(cx,cy,-1.38,s*.16,8,1); branch(cx,cy,1.76,s*.16,8,-1);
+    for(let spiral=0;spiral<3;spiral++){const pts:[number,number][]=[];for(let i=0;i<=130;i++){const t=i/130,a=t*Math.PI*3.8+spiral*.18,r=.025+t*.27;pts.push([.5+Math.cos(a)*r,.5+Math.sin(a)*r]);}path(pts,spiral===1?"#e6c66c":accent,.00048,.3);}
+  } else if (config.algorithm === "Magnetic Nebula") {
+    // Amethyst: mirrored infinity loops and magnetic halos.
+    for(let band=0;band<17;band++){const pts:[number,number][]=[];const scale=.25+(band-8)*.004;for(let i=0;i<=180;i++){const t=i/180*Math.PI*2;const d=1+Math.sin(t)*Math.sin(t);pts.push([.5+scale*Math.cos(t)/d,.5+scale*Math.sin(t)*Math.cos(t)/d*1.9]);}path(pts,band%5===0?"#e8ca83":accent,.00052+seed(band)*.00035,.22+seed(band)*.3);}
+  } else {
+    // Gold: three imperial orbital petals around a radiant solar core.
+    for(let lobe=0;lobe<3;lobe++)for(let band=0;band<7;band++){const a=lobe*Math.PI*2/3+seed(band)*.08;const pts:[number,number][]=[];for(let i=0;i<=130;i++){const t=i/130*Math.PI*2,r=.19+band*.009;const x=.5+Math.cos(t)*r*.82+Math.cos(a)*r*.68,y=.5+Math.sin(t)*r*.43+Math.sin(a)*r*.68;pts.push([x,y]);}path(pts,band%3?accent:"#ffe7a0",.00048+seed(band)*.00028,.25+seed(band)*.3);}
+    ctx.globalAlpha=.5;for(let ray=0;ray<72;ray++){const a=ray*Math.PI*2/72,r1=s*.055,r2=s*(.13+seed(ray)*.06);ctx.beginPath();ctx.moveTo(cx+Math.cos(a)*r1,cy+Math.sin(a)*r1);ctx.lineTo(cx+Math.cos(a)*r2,cy+Math.sin(a)*r2);ctx.stroke();}
+  }
+  ctx.globalAlpha=.95;ctx.fillStyle="#ffe7a0";ctx.shadowColor=accent;ctx.shadowBlur=s*.022;ctx.beginPath();ctx.arc(cx,cy,s*.0055,0,Math.PI*2);ctx.fill();ctx.restore();
+}
+
 function drawSurfacePattern(ctx: CanvasRenderingContext2D, frame: ParticleFrame, config: RenderConfig, palette: RGB[]) {
   const size = config.size; const tone = (index: number) => frame.tones[index % frame.tones.length] / 255; const color = (index: number) => palette[Math.min(palette.length - 1, Math.floor(tone(index) * palette.length))];
   ctx.save(); ctx.globalCompositeOperation = "source-over";
@@ -102,14 +140,14 @@ export function renderArtwork(canvas: HTMLCanvasElement, frame: ParticleFrame, c
   canvas.width = config.size; canvas.height = config.size;
   const ctx = canvas.getContext("2d", { alpha: false }); if (!ctx) return;
   ctx.fillStyle = config.background; ctx.fillRect(0, 0, config.size, config.size);
-  const aura = ctx.createRadialGradient(config.size * .55, config.size * .48, 0, config.size * .55, config.size * .48, config.size * .68);
-  aura.addColorStop(0, "rgba(79,45,145,.22)"); aura.addColorStop(.38, "rgba(17,122,133,.09)"); aura.addColorStop(.72, "rgba(156,36,100,.07)"); aura.addColorStop(1, "transparent");
+  const aura = ctx.createRadialGradient(config.size * .5, config.size * .5, 0, config.size * .5, config.size * .5, config.size * .68);
+  aura.addColorStop(0, `${config.accent || "#f2c65c"}38`); aura.addColorStop(.42, `${config.accent || "#f2c65c"}17`); aura.addColorStop(1, "transparent");
   ctx.fillStyle = aura; ctx.fillRect(0, 0, config.size, config.size);
   ctx.lineCap = "round"; ctx.globalCompositeOperation = "lighter";
   const palette = config.palette || [[config.gold[0], config.gold[1], config.gold[2]], [255, 92, 170], [97, 206, 220], [142, 110, 255]];
   drawHouseWorld(ctx, config);
   if (frame.composition >= 13) {
-    drawSurfacePattern(ctx, frame, config, palette); drawRoyalOrnament(ctx, config); ctx.globalCompositeOperation = "source-over";
+    drawSurfacePattern(ctx, frame, config, palette); drawHouseSigil(ctx, frame, config); drawRoyalOrnament(ctx, config); ctx.globalCompositeOperation = "source-over";
     const vignette = ctx.createRadialGradient(config.size / 2, config.size / 2, config.size * .25, config.size / 2, config.size / 2, config.size * .72); vignette.addColorStop(0, "transparent"); vignette.addColorStop(1, "rgba(0,0,0,.52)"); ctx.fillStyle = vignette; ctx.fillRect(0, 0, config.size, config.size); return;
   }
   const count = frame.tones.length;
@@ -157,6 +195,7 @@ export function renderArtwork(canvas: HTMLCanvasElement, frame: ParticleFrame, c
     for (let ring = 1; ring <= 3; ring++) { ctx.strokeStyle = `rgba(${ring === 2 ? "255,100,185" : "255,222,126"},${.2 / ring})`; ctx.lineWidth = config.size * .00045; ctx.shadowColor = ring === 2 ? "#ff5ca8" : "#ffd978"; ctx.shadowBlur = config.size * .006; ctx.beginPath(); ctx.arc(x, y, base * ring, 0, Math.PI * 2); ctx.stroke(); }
   }
   drawPatternMotif(ctx, frame.composition, config);
+  drawHouseSigil(ctx, frame, config);
   drawRoyalOrnament(ctx, config);
   ctx.shadowBlur = 0;
   ctx.globalCompositeOperation = "source-over";
