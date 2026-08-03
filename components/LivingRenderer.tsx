@@ -21,7 +21,7 @@ export function LivingRenderer({ words, features, onReady }: { words: [number, n
       try {
         setRenderError(false);
         const frame = simulateParticles(words, features, isSurfaceComposition(compositionFor(words, features)) ? SURFACE_SIMULATION : PREVIEW_SIMULATION);
-        renderArtwork(base, frame, { ...renderConfigForHouse(words, 1024), lineAlpha: .24, lineWidth: .55 });
+        renderArtwork(base, frame, { ...renderConfigForHouse(words, 1024), lineAlpha: .1, lineWidth: .42 });
         canvas.width = base.width; canvas.height = base.height;
         const ctx = canvas.getContext("2d"); if (!ctx) throw new Error("Canvas unavailable");
         const house = royalHouseFromWords(words); const duration = 12_000;

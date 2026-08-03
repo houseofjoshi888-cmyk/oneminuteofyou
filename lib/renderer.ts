@@ -8,8 +8,8 @@ export const DEFAULT_RENDER: RenderConfig = {
   background: "#05040a",
   gold: [238, 196, 92],
   palette: [[245, 199, 90], [255, 91, 168], [119, 103, 255], [52, 211, 198], [255, 143, 82]],
-  lineAlpha: 0.18,
-  lineWidth: 0.52,
+  lineAlpha: 0.09,
+  lineWidth: 0.42,
 };
 
 export function renderConfigForHouse(words: readonly number[], size = 4096): RenderConfig {
@@ -104,7 +104,7 @@ function drawHouseSigil(ctx: CanvasRenderingContext2D, frame: ParticleFrame, con
     for(let spiral=0;spiral<3;spiral++){const pts:[number,number][]=[];for(let i=0;i<=130;i++){const t=i/130,a=t*Math.PI*3.8+spiral*.18,r=.025+t*.27;pts.push([.5+Math.cos(a)*r,.5+Math.sin(a)*r]);}path(pts,spiral===1?"#e6c66c":accent,.00048,.3);}
   } else if (config.algorithm === "Magnetic Nebula") {
     // Amethyst: mirrored infinity loops and magnetic halos.
-    for(let band=0;band<17;band++){const pts:[number,number][]=[];const scale=.25+(band-8)*.004;for(let i=0;i<=180;i++){const t=i/180*Math.PI*2;const d=1+Math.sin(t)*Math.sin(t);pts.push([.5+scale*Math.cos(t)/d,.5+scale*Math.sin(t)*Math.cos(t)/d*1.9]);}path(pts,band%5===0?"#e8ca83":accent,.00052+seed(band)*.00035,.22+seed(band)*.3);}
+    for(let band=0;band<7;band++){const pts:[number,number][]=[];const scale=.25+(band-3)*.007;for(let i=0;i<=180;i++){const t=i/180*Math.PI*2;const d=1+Math.sin(t)*Math.sin(t);pts.push([.5+scale*Math.cos(t)/d,.5+scale*Math.sin(t)*Math.cos(t)/d*1.9]);}path(pts,band===3?"#e8ca83":accent,.00046+seed(band)*.00022,.2+seed(band)*.22);}
   } else {
     // Gold: three imperial orbital petals around a radiant solar core.
     for(let lobe=0;lobe<3;lobe++)for(let band=0;band<7;band++){const a=lobe*Math.PI*2/3+seed(band)*.08;const pts:[number,number][]=[];for(let i=0;i<=130;i++){const t=i/130*Math.PI*2,r=.19+band*.009;const x=.5+Math.cos(t)*r*.82+Math.cos(a)*r*.68,y=.5+Math.sin(t)*r*.43+Math.sin(a)*r*.68;pts.push([x,y]);}path(pts,band%3?accent:"#ffe7a0",.00048+seed(band)*.00028,.25+seed(band)*.3);}
@@ -151,7 +151,8 @@ export function renderArtwork(canvas: HTMLCanvasElement, frame: ParticleFrame, c
   const toneBins = 24;
   const supportsPath2D = typeof Path2D !== "undefined";
   const paths = supportsPath2D ? Array.from({ length: toneBins }, () => new Path2D()) : null;
-  for (let i = 0; i < count; i++) {
+  const particleStride = count >= 50_000 ? 6 : count >= 10_000 ? 4 : 2;
+  for (let i = 0; i < count; i += particleStride) {
     const tone = frame.tones[i] / 255;
     const sx = frame.starts[i * 2] * config.size, sy = frame.starts[i * 2 + 1] * config.size, ex = frame.ends[i * 2] * config.size, ey = frame.ends[i * 2 + 1] * config.size;
     const dx = ex - sx, dy = ey - sy; const bend = (((frame.tones[(i + 31) % count] / 255) - .5) * .34) + (frame.composition === 8 ? .12 : 0);

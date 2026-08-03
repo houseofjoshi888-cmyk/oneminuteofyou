@@ -7,6 +7,6 @@ import { compositionFor, isSurfaceComposition, PREVIEW_SIMULATION, SURFACE_SIMUL
 interface RendererProps { words: [number, number, number, number]; features: InteractionFeatures; onReady?: (canvas: HTMLCanvasElement) => void; }
 export function Renderer({ words, features, onReady }: RendererProps) {
   const ref = useRef<HTMLCanvasElement>(null); const [rendering, setRendering] = useState(true);
-  useEffect(() => { const canvas = ref.current; if (!canvas) return; setRendering(true); const id = requestAnimationFrame(() => { const frame = simulateParticles(words, features, isSurfaceComposition(compositionFor(words, features)) ? SURFACE_SIMULATION : PREVIEW_SIMULATION); renderArtwork(canvas, frame, { ...renderConfigForHouse(words, 1024), lineAlpha: .24, lineWidth: .55 }); setRendering(false); onReady?.(canvas); }); return () => cancelAnimationFrame(id); }, [words, features, onReady]);
+  useEffect(() => { const canvas = ref.current; if (!canvas) return; setRendering(true); const id = requestAnimationFrame(() => { const frame = simulateParticles(words, features, isSurfaceComposition(compositionFor(words, features)) ? SURFACE_SIMULATION : PREVIEW_SIMULATION); renderArtwork(canvas, frame, { ...renderConfigForHouse(words, 1024), lineAlpha: .1, lineWidth: .42 }); setRendering(false); onReady?.(canvas); }); return () => cancelAnimationFrame(id); }, [words, features, onReady]);
   return <div className="art-panel"><canvas ref={ref} aria-label="Your generated artwork" />{rendering && <div className="rendering">PREPARING FAST PREVIEW</div>}</div>;
 }
