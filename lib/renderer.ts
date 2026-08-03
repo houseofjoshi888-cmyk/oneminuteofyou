@@ -119,9 +119,6 @@ function drawSurfacePattern(ctx: CanvasRenderingContext2D, frame: ParticleFrame,
   if (frame.composition === 13) {
     const cells = 9; const unit = size / cells; for (let row = 0; row < cells; row++) for (let column = 0; column < cells; column++) { const c = color(row * cells + column); const x = column * unit, y = row * unit; ctx.fillStyle = `rgb(${c[0]},${c[1]},${c[2]})`; ctx.globalAlpha = .35 + tone(row * 7 + column) * .48; ctx.fillRect(x + unit * .06, y + unit * .06, unit * .88, unit * .88); ctx.fillStyle = config.background; ctx.globalAlpha = .48; ctx.beginPath(); ctx.moveTo(x + unit * .5, y + unit * .16); ctx.lineTo(x + unit * .84, y + unit * .5); ctx.lineTo(x + unit * .5, y + unit * .84); ctx.lineTo(x + unit * .16, y + unit * .5); ctx.closePath(); ctx.fill(); }
   }
-  if (frame.composition === 14) {
-    ctx.globalCompositeOperation = "lighter"; ctx.lineCap = "round"; for (let ribbon = 0; ribbon < 28; ribbon++) { const c = color(ribbon * 3); ctx.strokeStyle = `rgba(${c[0]},${c[1]},${c[2]},${.16 + tone(ribbon) * .36})`; ctx.lineWidth = size * (.006 + tone(ribbon + 8) * .014); ctx.beginPath(); const y = size * (.04 + ribbon * .034); ctx.moveTo(-size * .06, y); ctx.bezierCurveTo(size * .25, y - size * (.16 + tone(ribbon) * .12), size * .72, y + size * (.18 + tone(ribbon + 4) * .1), size * 1.08, y + Math.sin(ribbon) * size * .08); ctx.stroke(); }
-  }
   if (frame.composition === 15) {
     const cells = 7; const unit = size / cells; ctx.globalAlpha = .78; for (let row = 0; row < cells; row++) for (let column = 0; column < cells; column++) { const c = color(row * cells + column); const x = column * unit, y = row * unit; const inset = unit * (.08 + tone(row + column) * .12); ctx.fillStyle = `rgb(${c[0]},${c[1]},${c[2]})`; ctx.beginPath(); ctx.moveTo(x + inset, y + unit * .12); ctx.lineTo(x + unit - inset, y + inset); ctx.lineTo(x + unit * (.82 + tone(row * 2) * .09), y + unit - inset); ctx.lineTo(x + inset, y + unit * (.86 - tone(column) * .1)); ctx.closePath(); ctx.fill(); ctx.strokeStyle = config.background; ctx.lineWidth = size * .004; ctx.stroke(); }
   }
@@ -146,7 +143,7 @@ export function renderArtwork(canvas: HTMLCanvasElement, frame: ParticleFrame, c
   ctx.lineCap = "round"; ctx.globalCompositeOperation = "lighter";
   const palette = config.palette || [[config.gold[0], config.gold[1], config.gold[2]], [255, 92, 170], [97, 206, 220], [142, 110, 255]];
   drawHouseWorld(ctx, config);
-  if (frame.composition >= 13) {
+  if (frame.composition >= 13 && frame.composition !== 14) {
     drawSurfacePattern(ctx, frame, config, palette); drawHouseSigil(ctx, frame, config); drawRoyalOrnament(ctx, config); ctx.globalCompositeOperation = "source-over";
     const vignette = ctx.createRadialGradient(config.size / 2, config.size / 2, config.size * .25, config.size / 2, config.size / 2, config.size * .72); vignette.addColorStop(0, "transparent"); vignette.addColorStop(1, "rgba(0,0,0,.52)"); ctx.fillStyle = vignette; ctx.fillRect(0, 0, config.size, config.size); return;
   }

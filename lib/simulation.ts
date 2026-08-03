@@ -8,7 +8,7 @@ export const PREVIEW_SIMULATION: SimulationConfig = { ...DEFAULT_SIMULATION, par
 export const SURFACE_SIMULATION: SimulationConfig = { ...DEFAULT_SIMULATION, particleCount: 1, steps: 1 };
 export interface ParticleFrame { starts: Float32Array; ends: Float32Array; tones: Uint8Array; trace: Float32Array; taps: Float32Array; composition: number; }
 export const COMPOSITIONS = ["Solar Vortex", "Twin Bloom", "Silk Current", "Orbital Halo", "Drifting Nebula", "Touch Echo", "Rose Lattice", "Constellation Weave", "Celestial Muse", "Sacred Lattice", "Chrysanthemum Bloom", "Art Deco Fan", "Marble River", "Royal Tilework", "Silk Weave", "Stained Glass", "Topographic Relief", "Calligraphic Gesture"] as const;
-export function isSurfaceComposition(composition: number) { return composition >= 13; }
+export function isSurfaceComposition(composition: number) { return composition >= 13 && composition !== 14; }
 export function compositionFor(words: readonly number[], features: InteractionFeatures) {
   const science = scientificSignature(features, words);
   return (words[0] + science.symmetry + Math.floor(science.entropy * 100)) % COMPOSITIONS.length;
