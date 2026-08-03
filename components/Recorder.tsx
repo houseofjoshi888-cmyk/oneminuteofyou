@@ -1,7 +1,6 @@
 "use client";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Canvas } from "./Canvas";
-import { Countdown } from "./Countdown";
 import { createRecording, normalizedPoint, type InteractionPoint, type Recording } from "@/lib/recorder";
 
 const DURATION = 60_000;
@@ -39,13 +38,24 @@ export function Recorder({ onComplete }: RecorderProps) {
     if (points.current.length > 1) { const previous = points.current[points.current.length - 2], ctx = canvas.getContext("2d"); if (ctx) { const light = 58 + point.y * 24; ctx.strokeStyle = `hsla(41,72%,${light}%,${0.24 + point.pressure * .45})`; ctx.shadowColor = "rgba(217,181,103,.8)"; ctx.shadowBlur = 9; ctx.lineWidth = 0.8 + point.pressure * 1.6; ctx.beginPath(); ctx.moveTo(previous.x * canvas.clientWidth, previous.y * canvas.clientHeight); ctx.lineTo(point.x * canvas.clientWidth, point.y * canvas.clientHeight); ctx.stroke(); ctx.shadowBlur = 0; if (kind !== "move") { ctx.fillStyle = "rgba(255,245,205,.95)"; ctx.beginPath(); ctx.arc(point.x * canvas.clientWidth, point.y * canvas.clientHeight, 2.2, 0, Math.PI * 2); ctx.fill(); } } }
   };
 
-  return <div className="studio-stage">
-    <Canvas ref={canvasRef} className="capture-canvas" aria-label="Interaction recording canvas" onContextMenu={event => event.preventDefault()} onPointerMove={event => capture(event, "move")} onPointerDown={event => capture(event, "down")} onPointerUp={event => capture(event, "up")} onPointerCancel={event => capture(event, "up")} />
-    <div className="studio-overlay">
-      {!active && <div className="studio-intro"><p className="eyebrow"><span /> THE MINUTE AWAITS</p><h2>Disturb the field.</h2><p>Move, hover, pause, or tap. There is no right gesture.</p></div>}
-      <Countdown remainingMs={remaining} active={active} />
-      {!active && <button className="record-button" onClick={start}>Begin the minute</button>}
-      <div className="capture-bottom"><span className="capture-hint"><b>Move anywhere</b><br />mouse · touch · pen</span><span className="live-samples">{sampleCount.toLocaleString()} signals<br />captured locally</span></div>
-    </div>
+  const seconds = Math.max(0, Math.ceil(remaining / 1000));
+  return <div className="studio-stage studio-reference-stage">
+    <aside className="studio-timer">
+      <small>YOU HAVE</small><strong>00:{String(seconds).padStart(2,"0")}</strong><span>SECONDS LEFT</span>
+      <em className={active ? "is-active" : ""}>{active ? "RECORDING" : "READY"}</em>
+      <div className="studio-tips"><small>TIPS</small><p><b>Move naturally.</b>Let your movement flow without overthinking.</p><p><b>Fill the space.</b>Use the whole canvas with your gesture.</p><p><b>Express yourself.</b>Authenticity creates a lasting impression.</p></div>
+    </aside>
+    <section className="studio-capture-frame">
+      <img className="studio-figure" src="/landing-dancer.png" alt="Abstract particle dancer"/>
+      <Canvas ref={canvasRef} className="capture-canvas" aria-label="Movement recording canvas" onContextMenu={event => event.preventDefault()} onPointerMove={event => capture(event, "move")} onPointerDown={event => capture(event, "down")} onPointerUp={event => capture(event, "up")} onPointerCancel={event => capture(event, "up")} />
+      <i className="frame-corner corner-a"/><i className="frame-corner corner-b"/><i className="frame-corner corner-c"/><i className="frame-corner corner-d"/>
+    </section>
+    <aside className="studio-controls">
+      <small>INPUT</small><div className="control-pair"><span className="selected">POINTER</span><span>TOUCH</span></div>
+      <small>SIGNAL QUALITY</small><div className="control-pair"><span className="selected">HIGH</span><span>LOCAL</span></div>
+      {!active ? <button className="record-button" onClick={start}>START RECORDING</button> : <button className="record-button stop" onClick={finish}>STOP RECORDING</button>}
+      <p>{sampleCount.toLocaleString()} SIGNALS<br/>CAPTURED LOCALLY</p>
+    </aside>
+    <div className="studio-wave" aria-hidden="true">{Array.from({length:64},(_,i)=><i key={i} style={{height:`${7 + ((i * 17) % 31)}px`}}/>)}</div>
   </div>;
 }
