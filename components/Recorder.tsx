@@ -14,6 +14,11 @@ export function Recorder({ onComplete }: RecorderProps) {
   const [active, setActive] = useState(false);
   const [remaining, setRemaining] = useState(DURATION);
   const [sampleCount, setSampleCount] = useState(0);
+  const [metrics, setMetrics] = useState({ coverage: 0, distance: 0, velocity: 0, turns: 0 });
+  const cells = useRef(new Set<string>());
+  const distance = useRef(0);
+  const turns = useRef(0);
+  const previousAngle = useRef<number | null>(null);
 
   const finish = useCallback(() => {
     if (!active) return;
@@ -30,11 +35,12 @@ export function Recorder({ onComplete }: RecorderProps) {
 
   useEffect(() => { if (!active) return; const tick = () => { const next = Math.max(0, DURATION - (performance.now() - startedAt.current)); setRemaining(next); if (next <= 0) finish(); else frame.current = requestAnimationFrame(tick); }; frame.current = requestAnimationFrame(tick); return () => cancelAnimationFrame(frame.current); }, [active, finish]);
 
-  const start = () => { points.current = []; setSampleCount(0); const canvas = canvasRef.current; const ctx = canvas?.getContext("2d"); if (canvas && ctx) ctx.clearRect(0, 0, canvas.clientWidth, canvas.clientHeight); startedAt.current = performance.now(); setRemaining(DURATION); setActive(true); };
+  const start = () => { points.current = []; cells.current.clear(); distance.current = 0; turns.current = 0; previousAngle.current = null; setSampleCount(0); setMetrics({ coverage:0, distance:0, velocity:0, turns:0 }); const canvas = canvasRef.current; const ctx = canvas?.getContext("2d"); if (canvas && ctx) ctx.clearRect(0, 0, canvas.clientWidth, canvas.clientHeight); startedAt.current = performance.now(); setRemaining(DURATION); setActive(true); };
   const capture = (event: React.PointerEvent<HTMLCanvasElement>, kind: "move" | "down" | "up") => {
     if (!active) return; const canvas = canvasRef.current; if (!canvas) return;
     if (kind === "down") { try { canvas.setPointerCapture(event.pointerId); } catch { /* Some embedded mobile browsers do not expose pointer capture. */ } }
-    const point = normalizedPoint(event.nativeEvent, canvas.getBoundingClientRect(), startedAt.current, kind); points.current.push(point); if (points.current.length % 8 === 0 || kind !== "move") setSampleCount(points.current.length);
+    const point = normalizedPoint(event.nativeEvent, canvas.getBoundingClientRect(), startedAt.current, kind); points.current.push(point); cells.current.add(`${Math.min(9,Math.floor(point.x*10))}:${Math.min(9,Math.floor(point.y*10))}`); if (points.current.length % 8 === 0 || kind !== "move") setSampleCount(points.current.length);
+    if (points.current.length > 1) { const previous = points.current[points.current.length - 2], dx=point.x-previous.x, dy=point.y-previous.y, segment=Math.hypot(dx,dy), dt=Math.max(1,point.t-previous.t), angle=Math.atan2(dy,dx); distance.current+=segment; if(segment>.0005 && previousAngle.current!==null){let turn=Math.abs(angle-previousAngle.current); if(turn>Math.PI)turn=Math.PI*2-turn; if(turn>.18)turns.current++;} if(segment>.0005)previousAngle.current=angle; if(points.current.length%8===0||kind!=="move")setMetrics({coverage:cells.current.size,distance:distance.current,velocity:segment/(dt/1000),turns:turns.current}); }
     if (points.current.length > 1) { const previous = points.current[points.current.length - 2], ctx = canvas.getContext("2d"); if (ctx) { const light = 58 + point.y * 24; ctx.strokeStyle = `hsla(41,72%,${light}%,${0.24 + point.pressure * .45})`; ctx.shadowColor = "rgba(217,181,103,.8)"; ctx.shadowBlur = 9; ctx.lineWidth = 0.8 + point.pressure * 1.6; ctx.beginPath(); ctx.moveTo(previous.x * canvas.clientWidth, previous.y * canvas.clientHeight); ctx.lineTo(point.x * canvas.clientWidth, point.y * canvas.clientHeight); ctx.stroke(); ctx.shadowBlur = 0; if (kind !== "move") { ctx.fillStyle = "rgba(255,245,205,.95)"; ctx.beginPath(); ctx.arc(point.x * canvas.clientWidth, point.y * canvas.clientHeight, 2.2, 0, Math.PI * 2); ctx.fill(); } } }
   };
 
@@ -46,13 +52,13 @@ export function Recorder({ onComplete }: RecorderProps) {
       <div className="studio-tips"><small>TIPS</small><p><b>Move naturally.</b>Let your movement flow without overthinking.</p><p><b>Fill the space.</b>Use the whole canvas with your gesture.</p><p><b>Express yourself.</b>Authenticity creates a lasting impression.</p></div>
     </aside>
     <section className="studio-capture-frame">
-      <img className="studio-figure" src="/landing-dancer.png" alt="Abstract particle dancer"/>
+      <div className="generator-field" aria-hidden="true"><i/><i/><i/><i/><b>φ</b><span>X / 0—1</span><span>Y / 0—1</span></div>
       <Canvas ref={canvasRef} className="capture-canvas" aria-label="Movement recording canvas" onContextMenu={event => event.preventDefault()} onPointerMove={event => capture(event, "move")} onPointerDown={event => capture(event, "down")} onPointerUp={event => capture(event, "up")} onPointerCancel={event => capture(event, "up")} />
       <i className="frame-corner corner-a"/><i className="frame-corner corner-b"/><i className="frame-corner corner-c"/><i className="frame-corner corner-d"/>
     </section>
     <aside className="studio-controls">
-      <small>INPUT</small><div className="control-pair"><span className="selected">POINTER</span><span>TOUCH</span></div>
-      <small>SIGNAL QUALITY</small><div className="control-pair"><span className="selected">HIGH</span><span>LOCAL</span></div>
+      <small>LIVE MEASUREMENT</small><div className="generator-metrics"><div><span>COVERAGE</span><strong>{metrics.coverage}%</strong></div><div><span>VELOCITY</span><strong>{metrics.velocity.toFixed(2)}</strong></div><div><span>DISTANCE</span><strong>{metrics.distance.toFixed(2)}</strong></div><div><span>TURNS</span><strong>{metrics.turns}</strong></div></div>
+      <small>SEED INPUT</small><div className="control-pair"><span className="selected">POINTER / TOUCH</span><span>NORMALIZED XY</span></div>
       {!active ? <button className="record-button" onClick={start}>START RECORDING</button> : <button className="record-button stop" onClick={finish}>STOP RECORDING</button>}
       <p>{sampleCount.toLocaleString()} SIGNALS<br/>CAPTURED LOCALLY</p>
     </aside>
