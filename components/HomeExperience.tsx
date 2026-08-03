@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { Brand } from "@/components/Brand";
+import { HeroConstellation } from "@/components/HeroConstellation";
 
 const houses = [
   ["RUBY", "PASSION", "#b1122d"], ["SAPPHIRE", "TRUST", "#1746a0"],
@@ -40,7 +41,7 @@ export function HomeExperience() {
           <p>Record one minute of movement.<br />We transform it into generative art.<br />You own it forever.</p>
           <div className="royal-actions"><Link href="/generate">START YOUR MINUTE <b>→</b></Link><button onClick={() => document.getElementById("ritual")?.scrollIntoView({behavior:"smooth"})}>WATCH FILM <i>▷</i></button></div>
         </div>
-        <div className="royal-art" role="img" aria-label="Golden generative movement artwork" />
+        <div className="royal-art" role="img" aria-label="Golden generative movement artwork"><HeroConstellation phase="reveal" /><i className="royal-orbit orbit-one" /><i className="royal-orbit orbit-two" /><i className="royal-orbit orbit-three" /></div>
         <span className="scroll-note">↓&nbsp;&nbsp; SCROLL TO DISCOVER</span>
         <div className="minute-count"><small>TOTAL MINUTES RECORDED</small><strong>128,643</strong></div>
       </div>
