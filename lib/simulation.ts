@@ -8,10 +8,21 @@ export const PREVIEW_SIMULATION: SimulationConfig = { ...DEFAULT_SIMULATION, par
 export const SURFACE_SIMULATION: SimulationConfig = { ...DEFAULT_SIMULATION, particleCount: 1, steps: 1 };
 export interface ParticleFrame { starts: Float32Array; ends: Float32Array; tones: Uint8Array; trace: Float32Array; taps: Float32Array; composition: number; }
 export const COMPOSITIONS = ["Solar Vortex", "Twin Bloom", "Silk Current", "Orbital Halo", "Drifting Nebula", "Touch Echo", "Rose Lattice", "Constellation Weave", "Celestial Muse", "Sacred Lattice", "Chrysanthemum Bloom", "Art Deco Fan", "Marble River", "Royal Tilework", "Silk Weave", "Stained Glass", "Topographic Relief", "Calligraphic Gesture"] as const;
-export function isSurfaceComposition(composition: number) { return composition >= 13 && composition !== 14; }
+export function isSurfaceComposition(_composition: number) { return false; }
 export function compositionFor(words: readonly number[], features: InteractionFeatures) {
   const science = scientificSignature(features, words);
-  return (words[0] + science.symmetry + Math.floor(science.entropy * 100)) % COMPOSITIONS.length;
+  // House assignment chooses the visual family; motion and seed choose a unique member.
+  const house = (words[3] >>> 0) % 5;
+  const houseFamilies = [
+    [0, 4, 6, 7, 9],     // Ruby: fracture, bloom, lattice, constellation
+    [2, 3, 5, 7, 12],    // Sapphire: currents, halo, gesture, river
+    [1, 5, 6, 7, 10],    // Emerald: twin growth, trace, rose, branching bloom
+    [1, 3, 4, 6, 10],    // Amethyst: mirrored fields, halo, nebula, lotus
+    [0, 3, 6, 9, 10],    // Gold: solar vortex, orbit, sacred lattice, bloom
+  ] as const;
+  const variation = ((words[0] ^ words[1] ^ words[2]) >>> 0) + science.symmetry * 31 + science.harmonicOrder * 17 + Math.floor(science.entropy * 10_000) + features.taps * 13 + features.pauses * 19;
+  const family = houseFamilies[house];
+  return family[variation % family.length];
 }
 
 export function simulateParticles(words: [number, number, number, number], features: InteractionFeatures, config: SimulationConfig = DEFAULT_SIMULATION): ParticleFrame {
