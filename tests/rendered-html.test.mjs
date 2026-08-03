@@ -27,23 +27,25 @@ test("server-renders the finished collection homepage", async () => {
 });
 
 test("serves every product route", async () => {
-  for (const pathname of ["/generate", "/mint"]) {
+  for (const pathname of ["/generate", "/mint", "/collection", "/legal", "/artwork/1"]) {
     const response = await render(pathname);
     assert.equal(response.status, 200, `${pathname} should render`);
     assert.match(response.headers.get("content-type") ?? "", /^text\/html\b/i);
   }
 });
 
-test("keeps deterministic NFT guarantees in source", async () => {
-  const [simulation, seed, mint, provider] = await Promise.all([
+test("keeps deterministic NFT guarantees and direct reveal in source", async () => {
+  const [simulation, seed, generate, provider, museum] = await Promise.all([
     readFile(new URL("../lib/simulation.ts", import.meta.url), "utf8"),
     readFile(new URL("../lib/seed.ts", import.meta.url), "utf8"),
-    readFile(new URL("../app/mint/page.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/generate/page.tsx", import.meta.url), "utf8"),
     readFile(new URL("../app/providers.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../components/MuseumMode.tsx", import.meta.url), "utf8"),
   ]);
   assert.match(simulation, /particleCount:\s*100_000/);
   assert.match(seed, /SHA-256/);
-  assert.match(mint, /4096/);
-  assert.match(mint, /try\s*\{/);
+  assert.match(generate, /YOUR ONE-OF-ONE NFT/);
+  assert.doesNotMatch(generate, /Prepare royal edition|SeedReveal/);
+  assert.doesNotMatch(museum, /museumRecord/);
   assert.doesNotMatch(provider, /WalletProviders|wagmi|rainbow/i);
 });

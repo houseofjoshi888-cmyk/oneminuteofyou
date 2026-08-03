@@ -1,21 +1,27 @@
 "use client";
 
-import { useState } from "react";
+import Link from "next/link";
+import { useEffect, useState } from "react";
 import { useReadContract } from "wagmi";
 import { LivingRenderer } from "@/components/LivingRenderer";
+import { CertificateShare } from "@/components/CertificateShare";
+import type { InteractionFeatures } from "@/lib/analyzer";
 import { artworkName } from "@/lib/export";
-import { hiddenDiscoveries } from "@/lib/discoveries";
-import { museumRecord } from "@/lib/museum";
 import { royalHouseFromWords } from "@/lib/houses";
 import { oneMinuteContractAbi, oneMinuteContractAddress } from "@/lib/contract";
 
+interface Result { features: InteractionFeatures; hash: string; words: [number,number,number,number]; }
+
 export function MuseumMode({ tokenId }: { tokenId: number }) {
-  const [catalogue, setCatalogue] = useState(false); const record = museumRecord(tokenId); const house = royalHouseFromWords(record.words); const title = artworkName(record.hash, record.features); const discoveries = hiddenDiscoveries(record.features, record.words);
-  const owner = useReadContract({ address: oneMinuteContractAddress, abi: oneMinuteContractAbi, functionName: "ownerOf", args: [BigInt(tokenId)], query: { enabled: Boolean(oneMinuteContractAddress) } });
-  const share = async () => { try { await navigator.share?.({ title, url: window.location.href }); } catch { await navigator.clipboard?.writeText(window.location.href); } };
-  return <main className="museum-page" style={{ "--house-primary": house.primary, "--house-secondary": house.secondary } as React.CSSProperties}>
-    <header className="museum-nav"><span>ONE MINUTE OF YOU · {String(tokenId).padStart(3, "0")}</span><div><button onClick={() => setCatalogue(value => !value)}>{catalogue ? "Close catalogue" : "Museum catalogue"}</button><button onClick={share}>Share</button></div></header>
-    <div className="museum-art"><LivingRenderer words={record.words} features={record.features} /></div>
-    {catalogue && <aside className="museum-catalogue"><small>PERMANENT PROVENANCE / TOKEN {tokenId}</small><h1>{title}</h1><dl><dt>House</dt><dd>{house.name}</dd><dt>Algorithm</dt><dd>{house.algorithm}</dd><dt>Seed</dt><dd>{record.hash}</dd><dt>Owner</dt><dd>{owner.data || "Awaiting on-chain mint"}</dd><dt>Mint transaction</dt><dd>Available once minted on Base</dd><dt>Transfer history</dt><dd>View on BaseScan after the first transfer</dd></dl><section><small>HIDDEN DISCOVERIES</small>{discoveries.map(item => <p key={item.title}><strong>{item.title}</strong> — {item.detail}</p>)}</section><a href={`https://basescan.org/token/${oneMinuteContractAddress ?? ""}?a=${tokenId}`} target="_blank" rel="noreferrer">View on BaseScan ↗</a></aside>}
+  const [record,setRecord]=useState<Result|null>(null);
+  const [catalogue,setCatalogue]=useState(false);
+  useEffect(()=>{const timer=window.setTimeout(()=>{try{const stored=sessionStorage.getItem("one-minute-result"); if(stored)setRecord(JSON.parse(stored) as Result);}catch{sessionStorage.removeItem("one-minute-result");}},0);return()=>window.clearTimeout(timer);},[]);
+  const owner=useReadContract({address:oneMinuteContractAddress,abi:oneMinuteContractAbi,functionName:"ownerOf",args:[BigInt(tokenId)],query:{enabled:Boolean(oneMinuteContractAddress)}});
+  if(!record)return <main className="museum-page museum-empty"><header className="museum-nav"><Link href="/">ONE MINUTE OF YOU</Link><Link href="/generate">CREATE</Link></header><section><small>NO ARTWORK LOADED</small><h1>Your museum is empty.</h1><p>Create an artwork in this browser or open a verified on-chain token.</p><Link className="primary-button" href="/generate">BEGIN YOUR MINUTE <span>↗</span></Link></section></main>;
+  const house=royalHouseFromWords(record.words),title=artworkName(record.hash,record.features);
+  return <main className="museum-page protected-certificate" data-certificate={record.hash.slice(0,8).toUpperCase()} onContextMenu={event=>event.preventDefault()} style={{"--house-primary":house.primary,"--house-secondary":house.secondary} as React.CSSProperties}>
+    <header className="museum-nav"><Link href="/">ONE MINUTE OF YOU</Link><div><button onClick={()=>setCatalogue(value=>!value)}>{catalogue?"CLOSE DETAILS":"ARTWORK DETAILS"}</button><CertificateShare title={title} hash={record.hash}/></div></header>
+    <div className="museum-art"><LivingRenderer words={record.words} features={record.features}/></div>
+    {catalogue&&<aside className="museum-catalogue"><small>DETERMINISTIC PROVENANCE</small><h1>{title}</h1><dl><dt>House</dt><dd>{house.name}</dd><dt>Algorithm</dt><dd>{house.algorithm}</dd><dt>Seed</dt><dd>{record.hash}</dd><dt>Owner</dt><dd>{owner.data?String(owner.data):"Not minted on-chain"}</dd></dl>{oneMinuteContractAddress&&<a href={`https://basescan.org/token/${oneMinuteContractAddress}?a=${tokenId}`} target="_blank" rel="noreferrer">VIEW ON BASESCAN ↗</a>}</aside>}
   </main>;
 }

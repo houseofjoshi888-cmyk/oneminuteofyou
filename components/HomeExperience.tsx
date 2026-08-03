@@ -1,5 +1,7 @@
 "use client";
+/* eslint-disable @next/next/no-img-element -- Static Sites deployment serves these local hero assets directly. */
 import Link from "next/link";
+import { SiteFooter } from "@/components/SiteFooter";
 
 export function HomeExperience(){return <main className="reference-landing">
   <div className="reference-shell">
@@ -12,9 +14,9 @@ export function HomeExperience(){return <main className="reference-landing">
       <Link className="reference-enter" href="/generate">ENTER APP <b>→</b></Link>
     </nav>
     <section className="reference-hero">
-      <div className="reference-copy"><span>✣</span><h1>YOU ARE<br/>THE ORIGINAL<br/>ALGORITHM.</h1><hr/><p>Record one minute of movement.<br/>We transform it into generative art.<br/>You own it forever.</p><div className="reference-actions"><Link href="/generate">START YOUR MINUTE <b>→</b></Link><button onClick={()=>document.querySelector(".reference-art")?.scrollIntoView({behavior:"smooth"})}>WATCH FILM <i>▷</i></button></div></div>
+      <div className="reference-copy"><span>✣</span><h1>YOU ARE<br/>THE ORIGINAL<br/>ALGORITHM.</h1><hr/><p>Record one minute of movement.<br/>We transform it into generative art.<br/>You own it forever.</p><div className="reference-actions"><Link href="/generate">START YOUR MINUTE <b>→</b></Link></div></div>
       <div className="reference-art" aria-label="A dancer formed from luminous particles"><img src="/landing-dancer.png" alt="A dancer formed from gold and crimson particles" /></div>
-      <small className="reference-scroll"><i/> SCROLL TO DISCOVER</small><div className="reference-count"><small>TOTAL MINUTES RECORDED</small><b>128,643</b></div>
     </section>
   </div>
+  <SiteFooter />
  </main>}

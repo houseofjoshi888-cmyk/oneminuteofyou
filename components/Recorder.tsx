@@ -44,15 +44,17 @@ export function Recorder({ onComplete }: RecorderProps) {
     if (points.current.length > 1) { const previous = points.current[points.current.length - 2], ctx = canvas.getContext("2d"); if (ctx) { const light = 58 + point.y * 24; ctx.strokeStyle = `hsla(41,72%,${light}%,${0.24 + point.pressure * .45})`; ctx.shadowColor = "rgba(217,181,103,.8)"; ctx.shadowBlur = 9; ctx.lineWidth = 0.8 + point.pressure * 1.6; ctx.beginPath(); ctx.moveTo(previous.x * canvas.clientWidth, previous.y * canvas.clientHeight); ctx.lineTo(point.x * canvas.clientWidth, point.y * canvas.clientHeight); ctx.stroke(); ctx.shadowBlur = 0; if (kind !== "move") { ctx.fillStyle = "rgba(255,245,205,.95)"; ctx.beginPath(); ctx.arc(point.x * canvas.clientWidth, point.y * canvas.clientHeight, 2.2, 0, Math.PI * 2); ctx.fill(); } } }
   };
 
-  const seconds = Math.max(0, Math.ceil(remaining / 1000));
+  const totalSeconds = Math.max(0, Math.ceil(remaining / 1000));
+  const clock = `${String(Math.floor(totalSeconds / 60)).padStart(2,"0")}:${String(totalSeconds % 60).padStart(2,"0")}`;
   return <div className="studio-stage studio-reference-stage">
     <aside className="studio-timer">
-      <small>YOU HAVE</small><strong>00:{String(seconds).padStart(2,"0")}</strong><span>SECONDS LEFT</span>
+      <small>YOU HAVE</small><strong>{clock}</strong><span>SECONDS LEFT</span>
       <em className={active ? "is-active" : ""}>{active ? "RECORDING" : "READY"}</em>
       <div className="studio-tips"><small>TIPS</small><p><b>Move naturally.</b>Let your movement flow without overthinking.</p><p><b>Fill the space.</b>Use the whole canvas with your gesture.</p><p><b>Express yourself.</b>Authenticity creates a lasting impression.</p></div>
     </aside>
     <section className="studio-capture-frame">
       <div className="generator-field" aria-hidden="true"><i/><i/><i/><i/><b>φ</b><span>X / 0—1</span><span>Y / 0—1</span></div>
+      <div className={`studio-canvas-timer ${active ? "is-active" : ""}`}><small>{active ? "RECORDING" : "READY"}</small><strong>{clock}</strong></div>
       <Canvas ref={canvasRef} className="capture-canvas" aria-label="Movement recording canvas" onContextMenu={event => event.preventDefault()} onPointerMove={event => capture(event, "move")} onPointerDown={event => capture(event, "down")} onPointerUp={event => capture(event, "up")} onPointerCancel={event => capture(event, "up")} />
       <i className="frame-corner corner-a"/><i className="frame-corner corner-b"/><i className="frame-corner corner-c"/><i className="frame-corner corner-d"/>
     </section>

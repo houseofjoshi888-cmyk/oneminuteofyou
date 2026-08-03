@@ -16,6 +16,7 @@ import { Brand } from "@/components/Brand";
 import { ScienceSignature } from "@/components/ScienceSignature";
 import { hiddenDiscoveries } from "@/lib/discoveries";
 import { SiteFooter } from "@/components/SiteFooter";
+import { CertificateShare } from "@/components/CertificateShare";
 
 interface Result { features: InteractionFeatures; hash: string; words: [number, number, number, number]; }
 
@@ -36,7 +37,7 @@ export default function MintPage() {
 
   return <main className="result-page" style={houseStyle}>
     <nav className="studio-nav"><Brand /><div className="wallet-nav"><span className="nav-note">{house.name.toUpperCase()} / {result.hash.slice(0, 8).toUpperCase()}</span><WalletButton /></div></nav>
-    <div className="result-grid">
+    <div className="result-grid protected-certificate" data-certificate={result.hash.slice(0,8).toUpperCase()} onContextMenu={event=>event.preventDefault()}>
       <LivingRenderer words={result.words} features={result.features} />
       <section className="result-copy">
         <p className="eyebrow"><span /> ONE MINUTE OF YOU · ROYAL HOUSES</p>
@@ -45,6 +46,7 @@ export default function MintPage() {
         <div className="royal-house-card"><span className="house-gem">◆</span><div><small>ROYAL HOUSE · {house.algorithm.toUpperCase()}</small><strong>{house.name}</strong><em>{house.motto}</em></div><b>{rarity.tier}<small>RANK {rarity.score}</small></b></div>
         <section className="discoveries"><small>HIDDEN DISCOVERIES</small>{discoveries.map(discovery => <div key={discovery.title}><strong>{discovery.title}</strong><p>{discovery.detail}</p></div>)}</section>
         <ProvenanceSeal hash={result.hash} primary={house.primary} secondary={house.secondary} />
+        <CertificateShare title={title} hash={result.hash} />
         <article className="royal-chronicle"><small>THE ROYAL CHRONICLE · {chronicle.omen.toUpperCase()}</small><h3>{chronicle.title}</h3><p>{chronicle.legend}</p><blockquote>“{chronicle.decree}”</blockquote></article>
         <div className="nft-badge"><span>COLLECTION</span><strong>One Minute of You: Royal Houses</strong><i>1 / 1 · {result.hash.slice(0, 8).toUpperCase()}</i></div>
         <ScienceSignature features={result.features} words={result.words} />
