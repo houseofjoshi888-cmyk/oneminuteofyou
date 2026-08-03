@@ -7,6 +7,7 @@ import { Brand } from "@/components/Brand";
 const houses = [
   ["RUBY", "PASSION", "#b1122d"], ["SAPPHIRE", "TRUST", "#1746a0"],
   ["EMERALD", "GROWTH", "#087a5b"], ["AMETHYST", "WISDOM", "#7133a2"],
+  ["GOLD", "LEGACY", "#c99732"],
 ] as const;
 
 const steps = [
