@@ -1,5 +1,5 @@
 "use client";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, type CSSProperties } from "react";
 import { Canvas } from "./Canvas";
 import { createRecording, normalizedPoint, type InteractionPoint, type Recording } from "@/lib/recorder";
 
@@ -46,6 +46,7 @@ export function Recorder({ onComplete }: RecorderProps) {
 
   const totalSeconds = Math.max(0, Math.ceil(remaining / 1000));
   const clock = `${String(Math.floor(totalSeconds / 60)).padStart(2,"0")}:${String(totalSeconds % 60).padStart(2,"0")}`;
+  const elapsedPercent = Math.min(100, Math.max(0, ((DURATION - remaining) / DURATION) * 100));
   return <div className="studio-stage studio-reference-stage">
     <aside className="studio-timer">
       <small>YOU HAVE</small><strong>{clock}</strong><span>SECONDS LEFT</span>
@@ -64,6 +65,6 @@ export function Recorder({ onComplete }: RecorderProps) {
       {!active ? <button className="record-button" onClick={start}>START RECORDING</button> : <button className="record-button stop" onClick={finish}>STOP RECORDING</button>}
       <p>{sampleCount.toLocaleString()} SIGNALS<br/>CAPTURED LOCALLY</p>
     </aside>
-    <div className="studio-wave" aria-hidden="true">{Array.from({length:64},(_,i)=><i key={i} style={{height:`${7 + ((i * 17) % 31)}px`}}/>)}</div>
+    <div className={`studio-wave ${active ? "is-playing" : ""}`} style={{"--wave-progress":`${elapsedPercent}%`} as CSSProperties} aria-label={active ? `Recording signal, ${clock} remaining` : "Recording signal ready"}><span>{active ? `LIVE SIGNAL · ${clock}` : "SIGNAL READY · 01:00"}</span>{Array.from({length:64},(_,i)=><i key={i} style={{height:`${7 + ((i * 17) % 31)}px`,"--bar-delay":`${-(i%11)*0.07}s`} as CSSProperties}/>)}</div>
   </div>;
 }
