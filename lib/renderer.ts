@@ -112,7 +112,7 @@ function drawHouseSigil(ctx: CanvasRenderingContext2D, frame: ParticleFrame, con
   const seed = (index: number) => frame.tones[index % frame.tones.length] / 255;
   const path = (points: [number, number][], color = accent, width = .00115, alpha = .72) => {
     ctx.beginPath(); points.forEach(([x,y], i) => i ? ctx.lineTo(x*s,y*s) : ctx.moveTo(x*s,y*s));
-    ctx.strokeStyle = color; ctx.lineWidth = s * width; ctx.globalAlpha = alpha; ctx.shadowColor = color; ctx.shadowBlur = s * .006; ctx.stroke();
+    ctx.strokeStyle = color; ctx.lineWidth = s * width * 1.45; ctx.globalAlpha = Math.min(1, alpha * 1.8); ctx.shadowColor = color; ctx.shadowBlur = s * .008; ctx.stroke();
   };
   ctx.save(); ctx.globalCompositeOperation = "lighter"; ctx.lineCap = "round"; ctx.lineJoin = "round";
   // Fine astrolabe framework shared by all Houses.
@@ -143,6 +143,12 @@ function drawHouseSigil(ctx: CanvasRenderingContext2D, frame: ParticleFrame, con
     ctx.globalAlpha=.5;for(let ray=0;ray<72;ray++){const a=ray*Math.PI*2/72,r1=s*.055,r2=s*(.13+seed(ray)*.06);ctx.beginPath();ctx.moveTo(cx+Math.cos(a)*r1,cy+Math.sin(a)*r1);ctx.lineTo(cx+Math.cos(a)*r2,cy+Math.sin(a)*r2);ctx.stroke();}
   }
   ctx.globalAlpha=.95;ctx.fillStyle="#ffe7a0";ctx.shadowColor=accent;ctx.shadowBlur=s*.022;ctx.beginPath();ctx.arc(cx,cy,s*.0055,0,Math.PI*2);ctx.fill();ctx.restore();
+}
+
+export function drawMathematicalHousePattern(ctx: CanvasRenderingContext2D, frame: ParticleFrame, config: RenderConfig): void {
+  const palette = config.palette || [config.gold];
+  drawHouseSigil(ctx, frame, config);
+  drawStraightHousePattern(ctx, frame, config, palette);
 }
 
 function drawSurfacePattern(ctx: CanvasRenderingContext2D, frame: ParticleFrame, config: RenderConfig, palette: RGB[]) {
@@ -180,8 +186,7 @@ export function renderArtwork(canvas: HTMLCanvasElement, frame: ParticleFrame, c
   const palette = config.palette || [[config.gold[0], config.gold[1], config.gold[2]], [255, 92, 170], [97, 206, 220], [142, 110, 255]];
   // Every House contributes a full seeded composition; the recorded movement
   // then disturbs it so the result is recognizable as its House but never a template.
-  drawHouseSigil(ctx, frame, config);
-  drawStraightHousePattern(ctx, frame, config, palette);
+  drawMathematicalHousePattern(ctx, frame, config);
   const count = frame.tones.length;
   const toneBins = 24;
   const supportsPath2D = typeof Path2D !== "undefined";
