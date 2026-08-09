@@ -167,7 +167,7 @@ function drawSurfacePattern(ctx: CanvasRenderingContext2D, frame: ParticleFrame,
 
 // Retained for compatibility with historical render recipes; the collectible renderer below
 // intentionally omits every ornamental and curved House layer.
-void drawRoyalOrnament; void drawPatternMotif; void drawHouseWorld; void drawHouseSigil; void drawSurfacePattern;
+void drawRoyalOrnament; void drawPatternMotif; void drawHouseWorld; void drawSurfacePattern;
 
 export function renderArtwork(canvas: HTMLCanvasElement, frame: ParticleFrame, config: RenderConfig = DEFAULT_RENDER): void {
   canvas.width = config.size; canvas.height = config.size;
@@ -178,7 +178,9 @@ export function renderArtwork(canvas: HTMLCanvasElement, frame: ParticleFrame, c
   ctx.fillStyle = aura; ctx.fillRect(0, 0, config.size, config.size);
   ctx.lineCap = "round"; ctx.globalCompositeOperation = "lighter";
   const palette = config.palette || [[config.gold[0], config.gold[1], config.gold[2]], [255, 92, 170], [97, 206, 220], [142, 110, 255]];
-  // Every House contributes a seeded straight-line geometry; motion particles disturb it.
+  // Every House contributes a full seeded composition; the recorded movement
+  // then disturbs it so the result is recognizable as its House but never a template.
+  drawHouseSigil(ctx, frame, config);
   drawStraightHousePattern(ctx, frame, config, palette);
   const count = frame.tones.length;
   const toneBins = 24;
