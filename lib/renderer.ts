@@ -27,7 +27,7 @@ function drawStraightHousePattern(ctx: CanvasRenderingContext2D, frame: Particle
   const stroke = (points: Array<[number, number]>, colorIndex: number, alpha = .34, width = .00072) => {
     const color = palette[colorIndex % palette.length];
     ctx.beginPath(); points.forEach(([x, y], index) => index ? ctx.lineTo(x * size, y * size) : ctx.moveTo(x * size, y * size));
-    ctx.strokeStyle = `rgb(${color[0]},${color[1]},${color[2]})`; ctx.globalAlpha = alpha; ctx.lineWidth = size * width; ctx.shadowColor = ctx.strokeStyle; ctx.shadowBlur = size * .004; ctx.stroke();
+    ctx.strokeStyle = `rgb(${color[0]},${color[1]},${color[2]})`; ctx.globalAlpha = Math.min(1, alpha * 1.75); ctx.lineWidth = Math.max(1.1, size * width * 1.8); ctx.shadowColor = ctx.strokeStyle; ctx.shadowBlur = size * .006; ctx.stroke();
   };
   const polygon = (radius: number, sides: number, rotation: number, color: number, alpha: number) => {
     const points: Array<[number, number]> = [];

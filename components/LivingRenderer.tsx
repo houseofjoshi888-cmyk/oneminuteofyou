@@ -38,7 +38,8 @@ export function LivingRenderer({ words, features, onReady }: { words: [number, n
             const progress = Math.min(1, elapsed / drawDuration);
             const eased = 1 - Math.pow(1 - progress, 3);
             ctx.fillStyle = house.background; ctx.fillRect(0, 0, canvas.width, canvas.height);
-            ctx.save(); ctx.globalAlpha = .2; ctx.drawImage(base, 0, 0); ctx.restore();
+            // Keep the entire House pattern clearly visible while the brighter live pass draws over it.
+            ctx.save(); ctx.globalAlpha = .55; ctx.drawImage(base, 0, 0); ctx.restore();
             ctx.save(); ctx.beginPath(); ctx.rect(0, 0, canvas.width * eased, canvas.height); ctx.clip(); ctx.drawImage(base, 0, 0); ctx.restore();
             const cycle = elapsed / duration; ctx.globalCompositeOperation = "lighter";
             for (let i = words[0] % 41; i < frame.tones.length; i += 211) {
