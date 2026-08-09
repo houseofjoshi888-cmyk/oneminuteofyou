@@ -10,6 +10,7 @@ export function Recorder({ onComplete }: RecorderProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const points = useRef<InteractionPoint[]>([]);
   const startedAt = useRef(0);
+  const recordingNonce = useRef("");
   const frame = useRef(0);
   const [active, setActive] = useState(false);
   const [remaining, setRemaining] = useState(DURATION);
@@ -24,7 +25,7 @@ export function Recorder({ onComplete }: RecorderProps) {
     if (!active) return;
     setActive(false); cancelAnimationFrame(frame.current);
     const canvas = canvasRef.current;
-    if (canvas) onComplete(createRecording(points.current, DURATION, canvas.clientWidth, canvas.clientHeight));
+    if (canvas) onComplete(createRecording(points.current, DURATION, canvas.clientWidth, canvas.clientHeight, recordingNonce.current));
   }, [active, onComplete]);
 
   useEffect(() => {
@@ -35,7 +36,7 @@ export function Recorder({ onComplete }: RecorderProps) {
 
   useEffect(() => { if (!active) return; const tick = () => { const next = Math.max(0, DURATION - (performance.now() - startedAt.current)); setRemaining(next); if (next <= 0) finish(); else frame.current = requestAnimationFrame(tick); }; frame.current = requestAnimationFrame(tick); return () => cancelAnimationFrame(frame.current); }, [active, finish]);
 
-  const start = () => { points.current = []; cells.current.clear(); distance.current = 0; turns.current = 0; previousAngle.current = null; setSampleCount(0); setMetrics({ coverage:0, distance:0, velocity:0, turns:0 }); const canvas = canvasRef.current; const ctx = canvas?.getContext("2d"); if (canvas && ctx) ctx.clearRect(0, 0, canvas.clientWidth, canvas.clientHeight); startedAt.current = performance.now(); setRemaining(DURATION); setActive(true); };
+  const start = () => { points.current = []; cells.current.clear(); distance.current = 0; turns.current = 0; previousAngle.current = null; recordingNonce.current = crypto.randomUUID?.() || `${Date.now()}-${performance.now()}`; setSampleCount(0); setMetrics({ coverage:0, distance:0, velocity:0, turns:0 }); const canvas = canvasRef.current; const ctx = canvas?.getContext("2d"); if (canvas && ctx) ctx.clearRect(0, 0, canvas.clientWidth, canvas.clientHeight); startedAt.current = performance.now(); setRemaining(DURATION); setActive(true); };
   const capture = (event: React.PointerEvent<HTMLCanvasElement>, kind: "move" | "down" | "up") => {
     if (!active) return; const canvas = canvasRef.current; if (!canvas) return;
     if (kind === "down") { try { canvas.setPointerCapture(event.pointerId); } catch { /* Some embedded mobile browsers do not expose pointer capture. */ } }

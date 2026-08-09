@@ -11,6 +11,7 @@ export interface InteractionPoint {
 
 export interface Recording {
   version: 1;
+  recordingNonce: string;
   durationMs: number;
   width: number;
   height: number;
@@ -28,6 +29,6 @@ export function normalizedPoint(event: PointerEvent, rect: DOMRect, startedAt: n
   };
 }
 
-export function createRecording(points: InteractionPoint[], durationMs: number, width: number, height: number): Recording {
-  return { version: 1, durationMs: Math.round(durationMs), width: Math.round(width), height: Math.round(height), points };
+export function createRecording(points: InteractionPoint[], durationMs: number, width: number, height: number, recordingNonce = ""): Recording {
+  return { version: 1, recordingNonce, durationMs: Math.round(durationMs), width: Math.round(width), height: Math.round(height), points };
 }

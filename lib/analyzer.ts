@@ -2,6 +2,7 @@ import type { Recording } from "./recorder";
 
 export interface InteractionFeatures {
   version: 2;
+  recordingNonce?: string;
   durationMs: number;
   samples: number;
   distance: number;
@@ -70,7 +71,7 @@ export function analyzeRecording(recording: Recording): InteractionFeatures {
   const gestureTrace = Array.from({ length: 64 }, (_, index) => traceSource[Math.round(index * (traceSource.length - 1) / 63)]).flatMap(point => [q(point.x, 5), q(point.y, 5)]);
   const tapTrace = p.filter(point => point.kind === "down").slice(0, 24).flatMap(point => [q(point.x, 5), q(point.y, 5)]);
   return {
-    version: 2, durationMs: recording.durationMs, samples: p.length,
+    version: 2, recordingNonce: recording.recordingNonce, durationMs: recording.durationMs, samples: p.length,
     distance: q(distance), averageSpeed: q(speedSum / Math.max(1, speedCount)), peakSpeed: q(peakSpeed),
     averageAcceleration: q(acceleration / Math.max(1, accelerationCount)), averageCurvature: q(curvature / Math.max(1, turnCount)),
     pauses, pauseDurationMs: Math.round(pauseDurationMs), taps, directionEntropy: q(entropy), coverage: q(cells.size / 100),
