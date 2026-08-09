@@ -53,17 +53,14 @@ export function LivingRenderer({ words, features, onReady }: { words: [number, n
 
         canvas.width = 1024; canvas.height = 1024;
         const ctx = canvas.getContext("2d"); if (!ctx) throw new Error("Canvas unavailable");
-        const duration = 12_000, drawDuration = 10_000; cycleStartedRef.current = performance.now(); setRenderError(false);
+        const duration = 12_000; cycleStartedRef.current = performance.now(); setRenderError(false);
         const draw = (now: number) => {
           if (!active) return; raf = requestAnimationFrame(draw); if (now - lastFrame < 33) return; lastFrame = now;
           ctx.globalCompositeOperation = "source-over"; ctx.globalAlpha = 1;
           if (livingRef.current) {
             const elapsed = (now - cycleStartedRef.current) % duration;
-            const progress = Math.min(1, elapsed / drawDuration);
-            const eased = 1 - Math.pow(1 - progress, 3);
             ctx.fillStyle = house.background; ctx.fillRect(0, 0, canvas.width, canvas.height);
-            ctx.save(); ctx.globalAlpha = .82; ctx.drawImage(base, 0, 0); ctx.restore();
-            ctx.save(); ctx.beginPath(); ctx.rect(0, 0, canvas.width * eased, canvas.height); ctx.clip(); ctx.drawImage(base, 0, 0); ctx.restore();
+            ctx.drawImage(base, 0, 0);
             const cycle = elapsed / duration; ctx.globalCompositeOperation = "lighter";
             for (let i = words[0] % 41; i < frame.tones.length; i += 211) {
               const phase = (cycle + ((i * 2654435761) >>> 0) / 4294967296) % 1;
