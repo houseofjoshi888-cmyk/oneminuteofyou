@@ -12,6 +12,7 @@ export function LivingRenderer({ words, features, onReady }: { words: [number, n
   const [renderError, setRenderError] = useState(false);
   const [living, setLiving] = useState(true);
   const livingRef = useRef(true);
+  const cycleStartedRef = useRef(0);
   useEffect(() => {
     const canvas = canvasRef.current; if (!canvas) return;
     let raf = 0; let active = true; let lastFrame = -Infinity; let reportedReady = false;
@@ -24,15 +25,21 @@ export function LivingRenderer({ words, features, onReady }: { words: [number, n
         renderArtwork(base, frame, { ...renderConfigForHouse(words, 1024), lineAlpha: .1, lineWidth: .42 });
         canvas.width = base.width; canvas.height = base.height;
         const ctx = canvas.getContext("2d"); if (!ctx) throw new Error("Canvas unavailable");
-        const house = royalHouseFromWords(words); const duration = 12_000;
+        const house = royalHouseFromWords(words); const duration = 12_000; const drawDuration = 10_000;
+        cycleStartedRef.current = performance.now();
         const draw = (now: number) => {
           if (!active) return;
           raf = requestAnimationFrame(draw);
           if (now - lastFrame < 33) return;
           lastFrame = now;
-          ctx.globalCompositeOperation = "source-over"; ctx.globalAlpha = 1; ctx.drawImage(base, 0, 0);
+          ctx.globalCompositeOperation = "source-over"; ctx.globalAlpha = 1;
           if (livingRef.current) {
-            const cycle = (now % duration) / duration; ctx.globalCompositeOperation = "lighter";
+            const elapsed = (now - cycleStartedRef.current) % duration;
+            const progress = Math.min(1, elapsed / drawDuration);
+            const eased = 1 - Math.pow(1 - progress, 3);
+            ctx.fillStyle = house.background; ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.save(); ctx.beginPath(); ctx.rect(0, 0, canvas.width * eased, canvas.height); ctx.clip(); ctx.drawImage(base, 0, 0); ctx.restore();
+            const cycle = elapsed / duration; ctx.globalCompositeOperation = "lighter";
             for (let i = words[0] % 41; i < frame.tones.length; i += 211) {
               const phase = (cycle + ((i * 2654435761) >>> 0) / 4294967296) % 1;
               const pulse = Math.pow(Math.max(0, Math.sin(phase * Math.PI)), 12); if (pulse < .025) continue;
@@ -43,7 +50,7 @@ export function LivingRenderer({ words, features, onReady }: { words: [number, n
               ctx.beginPath(); ctx.arc(x, y, canvas.width * (.0007 + pulse * .0011), 0, Math.PI * 2); ctx.fill();
             }
             ctx.shadowBlur = 0; ctx.globalAlpha = 1;
-          }
+          } else ctx.drawImage(base, 0, 0);
           if (!reportedReady) { reportedReady = true; setRendering(false); onReady?.(canvas); }
         };
         raf = requestAnimationFrame(draw);
@@ -52,6 +59,6 @@ export function LivingRenderer({ words, features, onReady }: { words: [number, n
     raf = requestAnimationFrame(initialize);
     return () => { active = false; cancelAnimationFrame(raf); };
   }, [words, features, onReady]);
-  const toggleLiving = () => setLiving(value => { livingRef.current = !value; return !value; });
-  return <div className="art-panel living-panel" onContextMenu={event=>event.preventDefault()}><canvas ref={canvasRef} aria-label="Your deterministic living artwork" />{rendering && <div className="rendering">RENDERING YOUR ARTWORK</div>}{renderError && <div className="rendering render-error">ARTWORK PREVIEW UNAVAILABLE</div>}<div className="preview-quality">LIVE DETERMINISTIC RENDER</div><button className="living-toggle" onClick={toggleLiving} disabled={renderError}><span className={living ? "is-live" : ""} /> {living ? "LIVING · 12 SEC CYCLE" : "STILL PORTRAIT"}</button></div>;
+  const toggleLiving = () => setLiving(value => { livingRef.current = !value; if (!value) cycleStartedRef.current = performance.now(); return !value; });
+  return <div className="art-panel living-panel" onContextMenu={event=>event.preventDefault()}><canvas ref={canvasRef} aria-label={living ? "Your live NFT drawing itself" : "Your complete still NFT"} />{rendering && <div className="rendering">RENDERING YOUR NFT</div>}{renderError && <div className="rendering render-error">NFT PREVIEW UNAVAILABLE</div>}<div className="preview-quality">ONE NFT · LIVE + STILL</div><button className="living-toggle" onClick={toggleLiving} disabled={renderError}><span className={living ? "is-live" : ""} /> {living ? "LIVE NFT · DRAWING" : "STILL NFT · COMPLETE"}</button></div>;
 }

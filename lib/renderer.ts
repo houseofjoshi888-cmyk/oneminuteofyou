@@ -133,6 +133,10 @@ function drawSurfacePattern(ctx: CanvasRenderingContext2D, frame: ParticleFrame,
   ctx.restore();
 }
 
+// Retained for compatibility with historical render recipes; the collectible renderer below
+// intentionally omits every ornamental and curved House layer.
+void drawRoyalOrnament; void drawPatternMotif; void drawHouseWorld; void drawHouseSigil; void drawSurfacePattern;
+
 export function renderArtwork(canvas: HTMLCanvasElement, frame: ParticleFrame, config: RenderConfig = DEFAULT_RENDER): void {
   canvas.width = config.size; canvas.height = config.size;
   const ctx = canvas.getContext("2d", { alpha: false }); if (!ctx) return;
@@ -142,11 +146,8 @@ export function renderArtwork(canvas: HTMLCanvasElement, frame: ParticleFrame, c
   ctx.fillStyle = aura; ctx.fillRect(0, 0, config.size, config.size);
   ctx.lineCap = "round"; ctx.globalCompositeOperation = "lighter";
   const palette = config.palette || [[config.gold[0], config.gold[1], config.gold[2]], [255, 92, 170], [97, 206, 220], [142, 110, 255]];
-  drawHouseWorld(ctx, config);
-  if (frame.composition >= 13 && frame.composition !== 14) {
-    drawSurfacePattern(ctx, frame, config, palette); drawHouseSigil(ctx, frame, config); drawRoyalOrnament(ctx, config); ctx.globalCompositeOperation = "source-over";
-    const vignette = ctx.createRadialGradient(config.size / 2, config.size / 2, config.size * .25, config.size / 2, config.size / 2, config.size * .72); vignette.addColorStop(0, "transparent"); vignette.addColorStop(1, "rgba(0,0,0,.52)"); ctx.fillStyle = vignette; ctx.fillRect(0, 0, config.size, config.size); return;
-  }
+  // The final collectible contains only the movement-derived particle field.
+  // House identity is expressed through its deterministic palette, never added curves.
   const count = frame.tones.length;
   const toneBins = 24;
   const supportsPath2D = typeof Path2D !== "undefined";
@@ -155,12 +156,11 @@ export function renderArtwork(canvas: HTMLCanvasElement, frame: ParticleFrame, c
   for (let i = 0; i < count; i += particleStride) {
     const tone = frame.tones[i] / 255;
     const sx = frame.starts[i * 2] * config.size, sy = frame.starts[i * 2 + 1] * config.size, ex = frame.ends[i * 2] * config.size, ey = frame.ends[i * 2 + 1] * config.size;
-    const dx = ex - sx, dy = ey - sy; const bend = (((frame.tones[(i + 31) % count] / 255) - .5) * .34) + (frame.composition === 8 ? .12 : 0);
     if (paths) {
-      const path = paths[Math.min(toneBins - 1, Math.floor(tone * toneBins))]; path.moveTo(sx, sy); path.quadraticCurveTo((sx + ex) * .5 - dy * bend, (sy + ey) * .5 + dx * bend, ex, ey);
+      const path = paths[Math.min(toneBins - 1, Math.floor(tone * toneBins))]; path.moveTo(sx, sy); path.lineTo(ex, ey);
     } else {
       const scaled = tone * (palette.length - 1); const left = Math.floor(scaled); const color = mix(palette[left], palette[Math.min(palette.length - 1, left + 1)], scaled - left);
-      ctx.strokeStyle = `rgba(${color[0]},${color[1]},${color[2]},${config.lineAlpha * (.48 + tone * .8)})`; ctx.lineWidth = config.lineWidth * (.65 + tone * .8); ctx.beginPath(); ctx.moveTo(sx, sy); ctx.quadraticCurveTo((sx + ex) * .5 - dy * bend, (sy + ey) * .5 + dx * bend, ex, ey); ctx.stroke();
+      ctx.strokeStyle = `rgba(${color[0]},${color[1]},${color[2]},${config.lineAlpha * (.48 + tone * .8)})`; ctx.lineWidth = config.lineWidth * (.65 + tone * .8); ctx.beginPath(); ctx.moveTo(sx, sy); ctx.lineTo(ex, ey); ctx.stroke();
     }
   }
   ctx.shadowBlur = 0;
@@ -188,13 +188,7 @@ export function renderArtwork(canvas: HTMLCanvasElement, frame: ParticleFrame, c
     ctx.strokeStyle = "rgba(255,242,190,.78)"; ctx.lineWidth = config.size * .00032; ctx.shadowColor = "#ffe49a"; ctx.shadowBlur = radius * 3;
     ctx.beginPath(); ctx.moveTo(x - radius, y); ctx.lineTo(x + radius, y); ctx.moveTo(x, y - radius); ctx.lineTo(x, y + radius); ctx.moveTo(x - radius * .45, y - radius * .45); ctx.lineTo(x + radius * .45, y + radius * .45); ctx.moveTo(x + radius * .45, y - radius * .45); ctx.lineTo(x - radius * .45, y + radius * .45); ctx.stroke();
   }
-  for (let i = 0; i < frame.taps.length; i += 2) {
-    const x = frame.taps[i] * config.size, y = frame.taps[i + 1] * config.size; const base = config.size * (.007 + (i % 6) * .0015);
-    for (let ring = 1; ring <= 3; ring++) { ctx.strokeStyle = `rgba(${ring === 2 ? "255,100,185" : "255,222,126"},${.2 / ring})`; ctx.lineWidth = config.size * .00045; ctx.shadowColor = ring === 2 ? "#ff5ca8" : "#ffd978"; ctx.shadowBlur = config.size * .006; ctx.beginPath(); ctx.arc(x, y, base * ring, 0, Math.PI * 2); ctx.stroke(); }
-  }
-  drawPatternMotif(ctx, frame.composition, config);
-  drawHouseSigil(ctx, frame, config);
-  drawRoyalOrnament(ctx, config);
+  // No ornamental rings, curved House sigils, or certificate-like overlays.
   ctx.shadowBlur = 0;
   ctx.globalCompositeOperation = "source-over";
   const vignette = ctx.createRadialGradient(config.size / 2, config.size / 2, config.size * .25, config.size / 2, config.size / 2, config.size * .72);

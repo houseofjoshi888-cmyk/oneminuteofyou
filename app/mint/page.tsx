@@ -23,10 +23,10 @@ interface Result { features: InteractionFeatures; hash: string; words: [number, 
 export default function MintPage() {
   const [result, setResult] = useState<Result | null>(null);
   const [actionError, setActionError] = useState("");
-  useEffect(() => { const stored = sessionStorage.getItem("one-minute-result"); if (!stored) return; const id = window.setTimeout(() => { try { const parsed = JSON.parse(stored) as Result; if (!parsed?.hash || !Array.isArray(parsed.words) || !parsed.features) throw new Error(); setResult(parsed); } catch { sessionStorage.removeItem("one-minute-result"); setActionError("The saved portrait was invalid. Please record a new minute."); } }, 0); return () => clearTimeout(id); }, []);
+  useEffect(() => { const stored = sessionStorage.getItem("one-minute-result"); if (!stored) return; const id = window.setTimeout(() => { try { const parsed = JSON.parse(stored) as Result; if (!parsed?.hash || !Array.isArray(parsed.words) || !parsed.features) throw new Error(); setResult(parsed); } catch { sessionStorage.removeItem("one-minute-result"); setActionError("The saved NFT artwork was invalid. Please record a new minute."); } }, 0); return () => clearTimeout(id); }, []);
   const metadata = useMemo(() => result ? createMetadata(result.hash, result.features, DEFAULT_SIMULATION) : null, [result]);
 
-  if (!result) return <main className="result-page"><nav className="studio-nav"><Brand /><WalletButton /></nav><section className="result-copy" style={{ maxWidth: 620, margin: "12vh auto" }}><p className="eyebrow"><span /> NO PORTRAIT FOUND</p><h2>Your minute<br /><em>awaits.</em></h2><p className="mint-note">{actionError || "Record a minute first. Your portrait and metadata stay only in this browser session."}</p><Link className="primary-button" href="/generate">Begin recording <span>↗</span></Link></section><SiteFooter /></main>;
+  if (!result) return <main className="result-page"><nav className="studio-nav"><Brand /><WalletButton /></nav><section className="result-copy" style={{ maxWidth: 620, margin: "12vh auto" }}><p className="eyebrow"><span /> NO NFT FOUND</p><h2>Your minute<br /><em>awaits.</em></h2><p className="mint-note">{actionError || "Record a minute first. Your NFT artwork and metadata stay only in this browser session."}</p><Link className="primary-button" href="/generate">Begin recording <span>↗</span></Link></section><SiteFooter /></main>;
 
   const title = artworkName(result.hash, result.features);
   const house = royalHouseFromWords(result.words);
@@ -42,7 +42,7 @@ export default function MintPage() {
       <section className="result-copy">
         <p className="eyebrow"><span /> ONE MINUTE OF YOU · ROYAL HOUSES</p>
         <h2>{title}<br /><em>of {house.name}.</em></h2>
-        <p className="mint-note">Your portrait is deterministically resolved from the movement seed, House algorithm, and full generative simulation.</p>
+        <p className="mint-note">Your NFT is deterministically resolved from the movement seed, House algorithm, and full generative simulation.</p>
         <div className="royal-house-card"><span className="house-gem">◆</span><div><small>ROYAL HOUSE · {house.algorithm.toUpperCase()}</small><strong>{house.name}</strong><em>{house.motto}</em></div><b>{rarity.tier}<small>RANK {rarity.score}</small></b></div>
         <section className="discoveries"><small>HIDDEN DISCOVERIES</small>{discoveries.map(discovery => <div key={discovery.title}><strong>{discovery.title}</strong><p>{discovery.detail}</p></div>)}</section>
         <ProvenanceSeal hash={result.hash} primary={house.primary} secondary={house.secondary} />
