@@ -22,7 +22,7 @@ export function LivingRenderer({ words, features, onReady }: { words: [number, n
       try {
         setRenderError(false);
         const frame = simulateParticles(words, features, isSurfaceComposition(compositionFor(words, features)) ? SURFACE_SIMULATION : PREVIEW_SIMULATION);
-        renderArtwork(base, frame, { ...renderConfigForHouse(words, 1024), lineAlpha: .1, lineWidth: .42 });
+        renderArtwork(base, frame, { ...renderConfigForHouse(words, 1024), lineAlpha: .18, lineWidth: .68 });
         canvas.width = base.width; canvas.height = base.height;
         const ctx = canvas.getContext("2d"); if (!ctx) throw new Error("Canvas unavailable");
         const house = royalHouseFromWords(words); const duration = 12_000; const drawDuration = 10_000;
@@ -38,6 +38,7 @@ export function LivingRenderer({ words, features, onReady }: { words: [number, n
             const progress = Math.min(1, elapsed / drawDuration);
             const eased = 1 - Math.pow(1 - progress, 3);
             ctx.fillStyle = house.background; ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.save(); ctx.globalAlpha = .2; ctx.drawImage(base, 0, 0); ctx.restore();
             ctx.save(); ctx.beginPath(); ctx.rect(0, 0, canvas.width * eased, canvas.height); ctx.clip(); ctx.drawImage(base, 0, 0); ctx.restore();
             const cycle = elapsed / duration; ctx.globalCompositeOperation = "lighter";
             for (let i = words[0] % 41; i < frame.tones.length; i += 211) {

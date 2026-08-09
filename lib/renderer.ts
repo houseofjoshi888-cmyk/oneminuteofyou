@@ -21,6 +21,38 @@ function mix(a: RGB, b: RGB, amount: number): RGB {
   return a.map((value, index) => Math.round(value + (b[index] - value) * amount)) as RGB;
 }
 
+function drawStraightHousePattern(ctx: CanvasRenderingContext2D, frame: ParticleFrame, config: RenderConfig, palette: RGB[]) {
+  const size = config.size, cx = size * .5, cy = size * .5;
+  const seed = (index: number) => frame.tones[index % frame.tones.length] / 255;
+  const stroke = (points: Array<[number, number]>, colorIndex: number, alpha = .34, width = .00072) => {
+    const color = palette[colorIndex % palette.length];
+    ctx.beginPath(); points.forEach(([x, y], index) => index ? ctx.lineTo(x * size, y * size) : ctx.moveTo(x * size, y * size));
+    ctx.strokeStyle = `rgb(${color[0]},${color[1]},${color[2]})`; ctx.globalAlpha = alpha; ctx.lineWidth = size * width; ctx.shadowColor = ctx.strokeStyle; ctx.shadowBlur = size * .004; ctx.stroke();
+  };
+  const polygon = (radius: number, sides: number, rotation: number, color: number, alpha: number) => {
+    const points: Array<[number, number]> = [];
+    for (let side = 0; side <= sides; side++) { const angle = rotation + side * Math.PI * 2 / sides; points.push([.5 + Math.cos(angle) * radius, .5 + Math.sin(angle) * radius]); }
+    stroke(points, color, alpha, .00048);
+  };
+  ctx.save(); ctx.globalCompositeOperation = "lighter"; ctx.lineCap = "round"; ctx.lineJoin = "round";
+  if (config.algorithm === "Crystal Growth") {
+    for (let ring = 0; ring < 13; ring++) polygon(.055 + ring * .027, 6, seed(ring) * .28, ring, .16 + seed(ring + 7) * .22);
+    for (let ray = 0; ray < 12; ray++) { const angle = ray * Math.PI / 6 + seed(ray + 21) * .12, end = .18 + seed(ray + 3) * .25; const ex = .5 + Math.cos(angle) * end, ey = .5 + Math.sin(angle) * end; stroke([[.5,.5],[ex,ey],[ex + Math.cos(angle + .7) * .055,ey + Math.sin(angle + .7) * .055]], ray, .36, .00082); }
+  } else if (config.algorithm === "Flow Fields") {
+    for (let band = 0; band < 22; band++) { const points: Array<[number, number]> = []; for (let step = 0; step <= 20; step++) { const t = step / 20; points.push([.12 + t * .76, .08 + band * .039 + ((step + band) % 2 ? 1 : -1) * (.012 + seed(band) * .018)]); } stroke(points, band, .18 + seed(band + 5) * .28, .00055 + seed(band) * .0005); }
+  } else if (config.algorithm === "Fractal Roots") {
+    const branch = (x: number, y: number, angle: number, length: number, depth: number, color: number) => { if (!depth) return; const ex = x + Math.cos(angle) * length, ey = y + Math.sin(angle) * length; stroke([[x,y],[ex,ey]], color + depth, .24 + depth * .055, .00048 + depth * .00008); branch(ex,ey,angle - (.32 + seed(depth + color) * .2),length * .7,depth - 1,color); branch(ex,ey,angle + (.35 + seed(depth + color + 4) * .2),length * .66,depth - 1,color + 1); };
+    branch(.5,.88,-Math.PI/2,.18,8,0); branch(.22,.76,-1.15,.13,6,2); branch(.78,.76,-1.99,.13,6,3);
+  } else if (config.algorithm === "Magnetic Nebula") {
+    for (let band = 0; band < 14; band++) { const points: Array<[number, number]> = []; const scale = .19 + band * .009; for (let step = 0; step <= 48; step++) { const t = step / 48 * Math.PI * 2, d = 1 + Math.sin(t) * Math.sin(t); points.push([.5 + scale * Math.cos(t) / d, .5 + scale * Math.sin(t) * Math.cos(t) / d * 1.7]); } stroke(points, band, .16 + seed(band) * .25, .0005 + seed(band + 9) * .00045); }
+    for (let ray = 0; ray < 16; ray++) { const angle = ray * Math.PI / 8; stroke([[.5 + Math.cos(angle) * .08,.5 + Math.sin(angle) * .08],[.5 + Math.cos(angle) * (.34 + seed(ray) * .08),.5 + Math.sin(angle) * (.34 + seed(ray) * .08)]], ray, .22, .00045); }
+  } else {
+    for (let ring = 0; ring < 15; ring++) polygon(.045 + ring * .024, ring % 3 === 0 ? 12 : 8, ring * .09 + seed(ring) * .12, ring, .16 + seed(ring + 11) * .28);
+    for (let ray = 0; ray < 36; ray++) { const angle = ray * Math.PI / 18; stroke([[.5 + Math.cos(angle) * .04,.5 + Math.sin(angle) * .04],[.5 + Math.cos(angle) * (.23 + seed(ray) * .15),.5 + Math.sin(angle) * (.23 + seed(ray) * .15)]], ray, .22 + seed(ray + 3) * .3, .00042); }
+  }
+  ctx.globalAlpha = 1; ctx.shadowBlur = 0; ctx.fillStyle = config.accent || "#f2c65c"; ctx.fillRect(cx - size * .004, cy - size * .004, size * .008, size * .008); ctx.restore();
+}
+
 function drawRoyalOrnament(ctx: CanvasRenderingContext2D, config: RenderConfig) {
   const size = config.size, margin = size * .035; ctx.save(); ctx.globalCompositeOperation = "lighter"; ctx.strokeStyle = config.accent || "#f2c65c"; ctx.lineWidth = size * .00055; ctx.globalAlpha = .38; ctx.shadowColor = config.accent || "#f2c65c"; ctx.shadowBlur = size * .006;
   ctx.strokeRect(margin, margin, size - margin * 2, size - margin * 2); ctx.globalAlpha = .18; ctx.strokeRect(margin * 1.35, margin * 1.35, size - margin * 2.7, size - margin * 2.7);
@@ -146,8 +178,8 @@ export function renderArtwork(canvas: HTMLCanvasElement, frame: ParticleFrame, c
   ctx.fillStyle = aura; ctx.fillRect(0, 0, config.size, config.size);
   ctx.lineCap = "round"; ctx.globalCompositeOperation = "lighter";
   const palette = config.palette || [[config.gold[0], config.gold[1], config.gold[2]], [255, 92, 170], [97, 206, 220], [142, 110, 255]];
-  // The final collectible contains only the movement-derived particle field.
-  // House identity is expressed through its deterministic palette, never added curves.
+  // Every House contributes a seeded straight-line geometry; motion particles disturb it.
+  drawStraightHousePattern(ctx, frame, config, palette);
   const count = frame.tones.length;
   const toneBins = 24;
   const supportsPath2D = typeof Path2D !== "undefined";
