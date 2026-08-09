@@ -147,8 +147,67 @@ function drawHouseSigil(ctx: CanvasRenderingContext2D, frame: ParticleFrame, con
 
 export function drawMathematicalHousePattern(ctx: CanvasRenderingContext2D, frame: ParticleFrame, config: RenderConfig): void {
   const palette = config.palette || [config.gold];
-  drawHouseSigil(ctx, frame, config);
-  drawStraightHousePattern(ctx, frame, config, palette);
+  const s = config.size, composition = frame.composition % 13;
+  const seed = (index: number) => frame.tones[index % frame.tones.length] / 255;
+  const phase = seed(31) * Math.PI * 2;
+  const order = 3 + Math.floor(seed(47) * 10);
+  const traceCount = Math.max(1, frame.trace.length / 2);
+  ctx.save(); ctx.globalCompositeOperation = "lighter"; ctx.lineCap = "round"; ctx.lineJoin = "round";
+  for (let band = 0; band < 34; band++) {
+    const color = palette[band % palette.length];
+    const offset = (band - 16.5) / 33;
+    ctx.strokeStyle = `rgb(${color[0]},${color[1]},${color[2]})`;
+    ctx.globalAlpha = .2 + seed(band + 7) * .42;
+    ctx.lineWidth = s * (.00065 + seed(band + 13) * .00115);
+    ctx.shadowColor = ctx.strokeStyle; ctx.shadowBlur = s * .004;
+    ctx.beginPath();
+    for (let step = 0; step <= 180; step++) {
+      const t = step / 180, a = t * Math.PI * 2, wobble = Math.sin(a * order + phase + band * .17);
+      let x = .5, y = .5;
+      if (composition === 0) {
+        const r = .035 + t * (.34 + seed(2) * .09) + offset * .018;
+        x += Math.cos(a * (2.2 + seed(4) * 2.8) + phase) * r; y += Math.sin(a * (2.2 + seed(4) * 2.8) + phase) * r * (.65 + seed(5) * .42);
+      } else if (composition === 1) {
+        const side = band % 2 ? 1 : -1, r = .08 + t * .24;
+        x += side * (.16 + seed(6) * .08) + Math.cos(a + phase) * r * .72; y += Math.sin(a * (1 + order % 3) + phase) * r * .68 + offset * .025;
+      } else if (composition === 2) {
+        x = .06 + t * .88; y = .5 + offset * .72 + Math.sin(t * Math.PI * (3 + order) + phase + band * .21) * (.025 + seed(8) * .055);
+      } else if (composition === 3) {
+        const r = .13 + (band / 33) * .29;
+        x += Math.cos(a + phase + band * .035) * r; y += Math.sin(a + phase) * r * (.48 + seed(9) * .5) + wobble * .014;
+      } else if (composition === 4) {
+        x += Math.sin(a * (2 + order % 4) + phase + offset) * (.18 + seed(10) * .2); y += Math.sin(a * (3 + order % 5) + phase * .7) * (.17 + seed(11) * .19);
+      } else if (composition === 5) {
+        const position = t * (traceCount - 1), index = Math.floor(position), next = Math.min(traceCount - 1, index + 1), amount = position - index;
+        x = frame.trace[index * 2] + (frame.trace[next * 2] - frame.trace[index * 2]) * amount + Math.cos(a * 2 + phase) * offset * .11;
+        y = frame.trace[index * 2 + 1] + (frame.trace[next * 2 + 1] - frame.trace[index * 2 + 1]) * amount + Math.sin(a * 2 + phase) * offset * .11;
+      } else if (composition === 6) {
+        const petals = 4 + order, r = .16 + Math.cos(a * petals + phase) * (.13 + seed(12) * .08) + offset * .025;
+        x += Math.cos(a) * r; y += Math.sin(a) * r;
+      } else if (composition === 7) {
+        const nodes = 5 + order, segment = Math.floor(t * nodes), local = (t * nodes) % 1, a1 = phase + segment * Math.PI * 2 / nodes, a2 = phase + ((segment * 3 + 2) % nodes) * Math.PI * 2 / nodes, radius = .24 + offset * .13;
+        x += (Math.cos(a1) * (1 - local) + Math.cos(a2) * local) * radius; y += (Math.sin(a1) * (1 - local) + Math.sin(a2) * local) * radius;
+      } else if (composition === 8) {
+        const rays = 7 + order, local = (t * rays) % 1, ray = Math.floor(t * rays), angle = phase + ray * Math.PI * 2 / rays, r = .05 + Math.sin(local * Math.PI) * (.34 + offset * .06);
+        x += Math.cos(angle + wobble * .08) * r; y += Math.sin(angle + wobble * .08) * r;
+      } else if (composition === 9) {
+        const columns = 5 + order, row = band % columns;
+        x = .08 + t * .84; y = .1 + row * .8 / Math.max(1, columns - 1) + Math.sin(t * Math.PI * 2 * columns + phase) * .018 + offset * .018;
+      } else if (composition === 10) {
+        const petals = 8 + order, r = .1 + Math.abs(Math.sin(a * petals / 2 + phase)) * (.25 + offset * .05);
+        x += Math.cos(a) * r; y += Math.sin(a) * r;
+      } else if (composition === 11) {
+        const angle = Math.PI * (1.08 + t * .84) + phase * .08, r = .06 + (band / 33) * .48;
+        x += Math.cos(angle) * r; y = .84 + Math.sin(angle) * r * (.7 + seed(15) * .25);
+      } else {
+        x = .04 + t * .92; y = .08 + (band / 33) * .84 + Math.sin(t * Math.PI * (4 + order) + phase + band * .29) * (.018 + seed(16) * .045);
+      }
+      x = Math.max(.015, Math.min(.985, x)); y = Math.max(.015, Math.min(.985, y));
+      if (!step) ctx.moveTo(x * s, y * s); else ctx.lineTo(x * s, y * s);
+    }
+    ctx.stroke();
+  }
+  ctx.restore();
 }
 
 function drawSurfacePattern(ctx: CanvasRenderingContext2D, frame: ParticleFrame, config: RenderConfig, palette: RGB[]) {
@@ -173,7 +232,7 @@ function drawSurfacePattern(ctx: CanvasRenderingContext2D, frame: ParticleFrame,
 
 // Retained for compatibility with historical render recipes; the collectible renderer below
 // intentionally omits every ornamental and curved House layer.
-void drawRoyalOrnament; void drawPatternMotif; void drawHouseWorld; void drawSurfacePattern;
+void drawRoyalOrnament; void drawPatternMotif; void drawHouseWorld; void drawHouseSigil; void drawStraightHousePattern; void drawSurfacePattern;
 
 export function renderArtwork(canvas: HTMLCanvasElement, frame: ParticleFrame, config: RenderConfig = DEFAULT_RENDER): void {
   canvas.width = config.size; canvas.height = config.size;

@@ -11,18 +11,10 @@ export const COMPOSITIONS = ["Solar Vortex", "Twin Bloom", "Silk Current", "Orbi
 export function isSurfaceComposition(composition: number) { void composition; return false; }
 export function compositionFor(words: readonly number[], features: InteractionFeatures) {
   const science = scientificSignature(features, words);
-  // House assignment chooses the visual family; motion and seed choose a unique member.
-  const house = (words[3] >>> 0) % 5;
-  const houseFamilies = [
-    [0, 4, 6, 7, 9],     // Ruby: fracture, bloom, lattice, constellation
-    [2, 3, 5, 7, 12],    // Sapphire: currents, halo, gesture, river
-    [1, 5, 6, 7, 10],    // Emerald: twin growth, trace, rose, branching bloom
-    [1, 3, 4, 6, 10],    // Amethyst: mirrored fields, halo, nebula, lotus
-    [0, 3, 6, 9, 10],    // Gold: solar vortex, orbit, sacred lattice, bloom
-  ] as const;
+  // House controls its palette and field behavior. The seed independently
+  // selects one of thirteen macro topologies, preventing five repeated sigils.
   const variation = ((words[0] ^ words[1] ^ words[2]) >>> 0) + science.symmetry * 31 + science.harmonicOrder * 17 + Math.floor(science.entropy * 10_000) + features.taps * 13 + features.pauses * 19;
-  const family = houseFamilies[house];
-  return family[variation % family.length];
+  return variation % 13;
 }
 
 export function simulateParticles(words: [number, number, number, number], features: InteractionFeatures, config: SimulationConfig = DEFAULT_SIMULATION): ParticleFrame {
