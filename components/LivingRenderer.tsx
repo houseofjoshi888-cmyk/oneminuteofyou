@@ -13,33 +13,41 @@ export function LivingRenderer({ words, features, onReady }: { words: [number, n
   const [living, setLiving] = useState(true);
   const livingRef = useRef(true);
   const cycleStartedRef = useRef(0);
+
   useEffect(() => {
     const canvas = canvasRef.current; if (!canvas) return;
-    let raf = 0; let active = true; let lastFrame = -Infinity; let reportedReady = false;
-    const initialize = () => {
+    let raf = 0, active = true, lastFrame = -Infinity, reportedReady = false;
+    const frame = simulateParticles(words, features, isSurfaceComposition(compositionFor(words, features)) ? SURFACE_SIMULATION : PREVIEW_SIMULATION);
+    const house = royalHouseFromWords(words);
+    const generated = document.createElement("canvas");
+    const base = document.createElement("canvas");
+
+    const begin = (foundation?: HTMLImageElement) => {
       if (!active) return;
-      const base = document.createElement("canvas");
       try {
-        setRenderError(false);
-        const frame = simulateParticles(words, features, isSurfaceComposition(compositionFor(words, features)) ? SURFACE_SIMULATION : PREVIEW_SIMULATION);
-        renderArtwork(base, frame, { ...renderConfigForHouse(words, 1024), lineAlpha: .18, lineWidth: .68 });
-        canvas.width = base.width; canvas.height = base.height;
+        renderArtwork(generated, frame, { ...renderConfigForHouse(words, 1024), lineAlpha: .2, lineWidth: .72 });
+        base.width = 1024; base.height = 1024;
+        const baseContext = base.getContext("2d"); if (!baseContext) throw new Error("Canvas unavailable");
+        baseContext.fillStyle = house.background; baseContext.fillRect(0, 0, 1024, 1024);
+        if (foundation) {
+          const rotation = (((words[0] >>> 0) % 9) - 4) * .006;
+          const scale = 1.02 + ((words[1] >>> 0) % 7) * .006;
+          baseContext.save(); baseContext.translate(512, 512); baseContext.rotate(rotation); baseContext.scale(scale, scale); baseContext.globalAlpha = .92; baseContext.drawImage(foundation, -512, -512, 1024, 1024); baseContext.restore();
+        }
+        baseContext.save(); baseContext.globalCompositeOperation = "screen"; baseContext.globalAlpha = .82; baseContext.drawImage(generated, 0, 0); baseContext.restore();
+
+        canvas.width = 1024; canvas.height = 1024;
         const ctx = canvas.getContext("2d"); if (!ctx) throw new Error("Canvas unavailable");
-        const house = royalHouseFromWords(words); const duration = 12_000; const drawDuration = 10_000;
-        cycleStartedRef.current = performance.now();
+        const duration = 12_000, drawDuration = 10_000; cycleStartedRef.current = performance.now(); setRenderError(false);
         const draw = (now: number) => {
-          if (!active) return;
-          raf = requestAnimationFrame(draw);
-          if (now - lastFrame < 33) return;
-          lastFrame = now;
+          if (!active) return; raf = requestAnimationFrame(draw); if (now - lastFrame < 33) return; lastFrame = now;
           ctx.globalCompositeOperation = "source-over"; ctx.globalAlpha = 1;
           if (livingRef.current) {
             const elapsed = (now - cycleStartedRef.current) % duration;
             const progress = Math.min(1, elapsed / drawDuration);
             const eased = 1 - Math.pow(1 - progress, 3);
             ctx.fillStyle = house.background; ctx.fillRect(0, 0, canvas.width, canvas.height);
-            // Keep the entire House pattern clearly visible while the brighter live pass draws over it.
-            ctx.save(); ctx.globalAlpha = .55; ctx.drawImage(base, 0, 0); ctx.restore();
+            ctx.save(); ctx.globalAlpha = .62; ctx.drawImage(base, 0, 0); ctx.restore();
             ctx.save(); ctx.beginPath(); ctx.rect(0, 0, canvas.width * eased, canvas.height); ctx.clip(); ctx.drawImage(base, 0, 0); ctx.restore();
             const cycle = elapsed / duration; ctx.globalCompositeOperation = "lighter";
             for (let i = words[0] % 41; i < frame.tones.length; i += 211) {
@@ -58,9 +66,15 @@ export function LivingRenderer({ words, features, onReady }: { words: [number, n
         raf = requestAnimationFrame(draw);
       } catch { setRendering(false); setRenderError(true); }
     };
-    raf = requestAnimationFrame(initialize);
-    return () => { active = false; cancelAnimationFrame(raf); };
+
+    setRendering(true);
+    const foundation = new Image();
+    foundation.onload = () => begin(foundation);
+    foundation.onerror = () => begin();
+    foundation.src = `/houses/${house.id}-royal-editorial.png`;
+    return () => { active = false; foundation.onload = null; foundation.onerror = null; cancelAnimationFrame(raf); };
   }, [words, features, onReady]);
+
   const toggleLiving = () => setLiving(value => { livingRef.current = !value; if (!value) cycleStartedRef.current = performance.now(); return !value; });
   return <div className="art-panel living-panel" onContextMenu={event=>event.preventDefault()}><canvas ref={canvasRef} aria-label={living ? "Your live NFT drawing itself" : "Your complete still NFT"} />{rendering && <div className="rendering">RENDERING YOUR NFT</div>}{renderError && <div className="rendering render-error">NFT PREVIEW UNAVAILABLE</div>}<div className="preview-quality">ONE NFT · LIVE + STILL</div><button className="living-toggle" onClick={toggleLiving} disabled={renderError}><span className={living ? "is-live" : ""} /> {living ? "LIVE NFT · DRAWING" : "STILL NFT · COMPLETE"}</button></div>;
 }
