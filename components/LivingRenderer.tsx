@@ -35,14 +35,17 @@ export function LivingRenderer({ words, features, onReady }: { words: [number, n
 
         canvas.width = 1024; canvas.height = 1024;
         const ctx = canvas.getContext("2d"); if (!ctx) throw new Error("Canvas unavailable");
-        const duration = 12_000; cycleStartedRef.current = performance.now(); setRenderError(false);
+        const duration = 12_000, waveDuration = 48_000; cycleStartedRef.current = performance.now(); setRenderError(false);
         const draw = (now: number) => {
           if (!active) return; raf = requestAnimationFrame(draw); if (now - lastFrame < 33) return; lastFrame = now;
           ctx.globalCompositeOperation = "source-over"; ctx.globalAlpha = 1;
           if (livingRef.current) {
             const elapsed = (now - cycleStartedRef.current) % duration;
             ctx.fillStyle = house.background; ctx.fillRect(0, 0, canvas.width, canvas.height);
-            ctx.drawImage(base, 0, 0);
+            const wavePhase = ((now - cycleStartedRef.current) % waveDuration) / waveDuration * Math.PI * 2;
+            const direction = words[1] % 2 ? 1 : -1;
+            const waveScale = 1.012 + Math.sin(wavePhase) * .006;
+            ctx.save(); ctx.translate(512 + Math.sin(wavePhase) * 4, 512 + Math.cos(wavePhase * .73) * 3); ctx.rotate(Math.sin(wavePhase * .61) * .006 * direction); ctx.scale(waveScale, waveScale); ctx.drawImage(base, -512, -512); ctx.restore();
             const cycle = elapsed / duration; ctx.globalCompositeOperation = "lighter";
             for (let i = words[0] % 41; i < frame.tones.length; i += 211) {
               const phase = (cycle + ((i * 2654435761) >>> 0) / 4294967296) % 1;
