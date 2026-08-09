@@ -25,7 +25,7 @@ export function LivingRenderer({ words, features, onReady }: { words: [number, n
     const begin = () => {
       if (!active) return;
       try {
-        renderArtwork(generated, frame, { ...renderConfigForHouse(words, 1024), lineAlpha: .42, lineWidth: 1.05 });
+        renderArtwork(generated, frame, { ...renderConfigForHouse(words, 1024), lineAlpha: .78, lineWidth: 1.45 });
         base.width = 1024; base.height = 1024;
         const baseContext = base.getContext("2d"); if (!baseContext) throw new Error("Canvas unavailable");
         baseContext.fillStyle = house.background; baseContext.fillRect(0, 0, 1024, 1024);
@@ -42,7 +42,7 @@ export function LivingRenderer({ words, features, onReady }: { words: [number, n
             const progress = Math.min(1, elapsed / drawDuration);
             const eased = 1 - Math.pow(1 - progress, 3);
             ctx.fillStyle = house.background; ctx.fillRect(0, 0, canvas.width, canvas.height);
-            ctx.save(); ctx.globalAlpha = .62; ctx.drawImage(base, 0, 0); ctx.restore();
+            ctx.save(); ctx.globalAlpha = .82; ctx.drawImage(base, 0, 0); ctx.restore();
             ctx.save(); ctx.beginPath(); ctx.rect(0, 0, canvas.width * eased, canvas.height); ctx.clip(); ctx.drawImage(base, 0, 0); ctx.restore();
             const cycle = elapsed / duration; ctx.globalCompositeOperation = "lighter";
             for (let i = words[0] % 41; i < frame.tones.length; i += 211) {

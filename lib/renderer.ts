@@ -184,7 +184,9 @@ export function renderArtwork(canvas: HTMLCanvasElement, frame: ParticleFrame, c
   const toneBins = 24;
   const supportsPath2D = typeof Path2D !== "undefined";
   const paths = supportsPath2D ? Array.from({ length: toneBins }, () => new Path2D()) : null;
-  const particleStride = count >= 50_000 ? 6 : count >= 10_000 ? 4 : 2;
+  // Draw every preview trajectory so the live NFT reads as a complete field,
+  // while retaining a modest stride for the much denser final render.
+  const particleStride = count >= 50_000 ? 4 : 1;
   for (let i = 0; i < count; i += particleStride) {
     const tone = frame.tones[i] / 255;
     const sx = frame.starts[i * 2] * config.size, sy = frame.starts[i * 2 + 1] * config.size, ex = frame.ends[i * 2] * config.size, ey = frame.ends[i * 2 + 1] * config.size;
