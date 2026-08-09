@@ -22,19 +22,14 @@ export function LivingRenderer({ words, features, onReady }: { words: [number, n
     const generated = document.createElement("canvas");
     const base = document.createElement("canvas");
 
-    const begin = (foundation?: HTMLImageElement) => {
+    const begin = () => {
       if (!active) return;
       try {
-        renderArtwork(generated, frame, { ...renderConfigForHouse(words, 1024), lineAlpha: .2, lineWidth: .72 });
+        renderArtwork(generated, frame, { ...renderConfigForHouse(words, 1024), lineAlpha: .42, lineWidth: 1.05 });
         base.width = 1024; base.height = 1024;
         const baseContext = base.getContext("2d"); if (!baseContext) throw new Error("Canvas unavailable");
         baseContext.fillStyle = house.background; baseContext.fillRect(0, 0, 1024, 1024);
-        if (foundation) {
-          const rotation = (((words[0] >>> 0) % 9) - 4) * .006;
-          const scale = 1.02 + ((words[1] >>> 0) % 7) * .006;
-          baseContext.save(); baseContext.translate(512, 512); baseContext.rotate(rotation); baseContext.scale(scale, scale); baseContext.globalAlpha = .92; baseContext.drawImage(foundation, -512, -512, 1024, 1024); baseContext.restore();
-        }
-        baseContext.save(); baseContext.globalCompositeOperation = "screen"; baseContext.globalAlpha = .82; baseContext.drawImage(generated, 0, 0); baseContext.restore();
+        baseContext.save(); baseContext.globalCompositeOperation = "screen"; baseContext.globalAlpha = 1; baseContext.drawImage(generated, 0, 0); baseContext.restore();
 
         canvas.width = 1024; canvas.height = 1024;
         const ctx = canvas.getContext("2d"); if (!ctx) throw new Error("Canvas unavailable");
@@ -68,11 +63,8 @@ export function LivingRenderer({ words, features, onReady }: { words: [number, n
     };
 
     setRendering(true);
-    const foundation = new Image();
-    foundation.onload = () => begin(foundation);
-    foundation.onerror = () => begin();
-    foundation.src = `/houses/${house.id}-royal-editorial.png`;
-    return () => { active = false; foundation.onload = null; foundation.onerror = null; cancelAnimationFrame(raf); };
+    begin();
+    return () => { active = false; cancelAnimationFrame(raf); };
   }, [words, features, onReady]);
 
   const toggleLiving = () => setLiving(value => { livingRef.current = !value; if (!value) cycleStartedRef.current = performance.now(); return !value; });
