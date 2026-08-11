@@ -6,7 +6,7 @@ export interface SimulationConfig { particleCount: number; steps: number; fieldS
 export const DEFAULT_SIMULATION: SimulationConfig = { particleCount: 100_000, steps: 54, fieldScale: 3.2, stepLength: 0.0018, turbulence: 0.54 };
 export const PREVIEW_SIMULATION: SimulationConfig = { ...DEFAULT_SIMULATION, particleCount: 18_000, steps: 32 };
 export const SURFACE_SIMULATION: SimulationConfig = { ...DEFAULT_SIMULATION, particleCount: 1, steps: 1 };
-export interface ParticleFrame { starts: Float32Array; ends: Float32Array; tones: Uint8Array; trace: Float32Array; taps: Float32Array; composition: number; }
+export interface ParticleFrame { starts: Float32Array; ends: Float32Array; tones: Uint8Array; trace: Float32Array; taps: Float32Array; composition: number; kinetics: { speed: number; acceleration: number; curvature: number; coverage: number; }; }
 export const COMPOSITIONS = ["Solar Vortex", "Twin Bloom", "Silk Current", "Orbital Halo", "Drifting Nebula", "Touch Echo", "Rose Lattice", "Constellation Weave", "Celestial Muse", "Sacred Lattice", "Chrysanthemum Bloom", "Art Deco Fan", "Marble River", "Royal Tilework", "Silk Weave", "Stained Glass", "Topographic Relief", "Calligraphic Gesture"] as const;
 export function isSurfaceComposition(composition: number) { void composition; return false; }
 export function compositionFor(words: readonly number[], features: InteractionFeatures) {
@@ -145,5 +145,10 @@ export function simulateParticles(words: [number, number, number, number], featu
     }
     ends[i * 2] = x; ends[i * 2 + 1] = y; tones[i] = Math.floor(random() * 255);
   }
-  return { starts, ends, tones, trace, taps, composition };
+  return { starts, ends, tones, trace, taps, composition, kinetics: {
+    speed: Math.min(1, Math.max(0, features.averageSpeed * 12)),
+    acceleration: Math.min(1, Math.log1p(Math.max(0, features.averageAcceleration)) / 8),
+    curvature: Math.min(1, Math.log1p(Math.max(0, features.averageCurvature)) / 7),
+    coverage: Math.min(1, Math.max(0, features.coverage)),
+  } };
 }

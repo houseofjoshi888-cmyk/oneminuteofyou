@@ -150,12 +150,15 @@ export function drawMathematicalHousePattern(ctx: CanvasRenderingContext2D, fram
   const s = config.size, composition = frame.composition % 13;
   const seed = (index: number) => frame.tones[index % frame.tones.length] / 255;
   const phase = seed(31) * Math.PI * 2;
-  const order = 3 + Math.floor(seed(47) * 10);
+  const order = 3 + Math.floor(seed(47) * 7 + frame.kinetics.curvature * 5 + frame.kinetics.acceleration * 3);
+  const bandCount = 20 + Math.round(frame.kinetics.speed * 28 + frame.kinetics.coverage * 14);
+  const motionScale = .82 + frame.kinetics.speed * .34 + frame.kinetics.acceleration * .16;
+  const curveScale = .75 + frame.kinetics.curvature * .5;
   const traceCount = Math.max(1, frame.trace.length / 2);
   ctx.save(); ctx.globalCompositeOperation = "lighter"; ctx.lineCap = "round"; ctx.lineJoin = "round";
-  for (let band = 0; band < 34; band++) {
+  for (let band = 0; band < bandCount; band++) {
     const color = palette[band % palette.length];
-    const offset = (band - 16.5) / 33;
+    const offset = (band - (bandCount - 1) / 2) / Math.max(1, bandCount - 1);
     ctx.strokeStyle = `rgb(${color[0]},${color[1]},${color[2]})`;
     ctx.globalAlpha = .2 + seed(band + 7) * .42;
     ctx.lineWidth = s * (.00065 + seed(band + 13) * .00115);
@@ -165,15 +168,15 @@ export function drawMathematicalHousePattern(ctx: CanvasRenderingContext2D, fram
       const t = step / 180, a = t * Math.PI * 2, wobble = Math.sin(a * order + phase + band * .17);
       let x = .5, y = .5;
       if (composition === 0) {
-        const r = .035 + t * (.34 + seed(2) * .09) + offset * .018;
+        const r = .035 + t * (.34 + seed(2) * .09) * motionScale + offset * .018;
         x += Math.cos(a * (2.2 + seed(4) * 2.8) + phase) * r; y += Math.sin(a * (2.2 + seed(4) * 2.8) + phase) * r * (.65 + seed(5) * .42);
       } else if (composition === 1) {
         const side = band % 2 ? 1 : -1, r = .08 + t * .24;
         x += side * (.16 + seed(6) * .08) + Math.cos(a + phase) * r * .72; y += Math.sin(a * (1 + order % 3) + phase) * r * .68 + offset * .025;
       } else if (composition === 2) {
-        x = .06 + t * .88; y = .5 + offset * .72 + Math.sin(t * Math.PI * (3 + order) + phase + band * .21) * (.025 + seed(8) * .055);
+        x = .06 + t * .88; y = .5 + offset * .72 + Math.sin(t * Math.PI * (3 + order) + phase + band * .21) * (.025 + seed(8) * .055) * curveScale;
       } else if (composition === 3) {
-        const r = .13 + (band / 33) * .29;
+        const r = .13 + (band / Math.max(1, bandCount - 1)) * .29 * motionScale;
         x += Math.cos(a + phase + band * .035) * r; y += Math.sin(a + phase) * r * (.48 + seed(9) * .5) + wobble * .014;
       } else if (composition === 4) {
         x += Math.sin(a * (2 + order % 4) + phase + offset) * (.18 + seed(10) * .2); y += Math.sin(a * (3 + order % 5) + phase * .7) * (.17 + seed(11) * .19);
@@ -197,10 +200,10 @@ export function drawMathematicalHousePattern(ctx: CanvasRenderingContext2D, fram
         const petals = 8 + order, r = .1 + Math.abs(Math.sin(a * petals / 2 + phase)) * (.25 + offset * .05);
         x += Math.cos(a) * r; y += Math.sin(a) * r;
       } else if (composition === 11) {
-        const angle = Math.PI * (1.08 + t * .84) + phase * .08, r = .06 + (band / 33) * .48;
+        const angle = Math.PI * (1.08 + t * .84) + phase * .08, r = .06 + (band / Math.max(1, bandCount - 1)) * .48 * motionScale;
         x += Math.cos(angle) * r; y = .84 + Math.sin(angle) * r * (.7 + seed(15) * .25);
       } else {
-        x = .04 + t * .92; y = .08 + (band / 33) * .84 + Math.sin(t * Math.PI * (4 + order) + phase + band * .29) * (.018 + seed(16) * .045);
+        x = .04 + t * .92; y = .08 + (band / Math.max(1, bandCount - 1)) * .84 + Math.sin(t * Math.PI * (4 + order) + phase + band * .29) * (.018 + seed(16) * .045) * curveScale;
       }
       x = Math.max(.015, Math.min(.985, x)); y = Math.max(.015, Math.min(.985, y));
       if (!step) ctx.moveTo(x * s, y * s); else ctx.lineTo(x * s, y * s);

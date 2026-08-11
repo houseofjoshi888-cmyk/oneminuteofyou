@@ -12,24 +12,25 @@ import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol
 /// @title One Minute of You: Royal Houses
 /// @notice A Base-native ERC-721 for a unique SHA-256 interaction seed and immutable metadata.
 contract OneMinuteOfYou is ERC721URIStorage, ERC721Royalty, ERC721Pausable, Ownable2Step, ReentrancyGuard {
+    uint256 public constant MAX_SUPPLY = 500;
     error MintClosed(); error SoldOut(); error SeedAlreadyMinted(bytes32 seedHash); error InvalidMetadataURI(); error WalletLimitReached(); error IncorrectPayment(uint256 required, uint256 received); error WithdrawalFailed();
-    uint256 public immutable maxSupply; uint256 public mintPrice; uint256 public maxPerWallet; uint256 public totalMinted; bool public publicMintOpen;
+    uint256 public mintPrice; uint256 public maxPerWallet; uint256 public totalMinted; bool public publicMintOpen;
     mapping(bytes32 => bool) public seedMinted; mapping(address => uint256) public mintedByWallet;
     event OneMinuteMinted(uint256 indexed tokenId, address indexed collector, bytes32 indexed seedHash, string metadataURI);
     event PublicMintStateChanged(bool open); event MintPriceChanged(uint256 mintPrice); event MaxPerWalletChanged(uint256 maxPerWallet);
 
-    constructor(address initialOwner, address royaltyReceiver, uint96 royaltyBps, uint256 initialMintPrice, uint256 collectionMaxSupply, uint256 initialMaxPerWallet) ERC721("One Minute of You: Royal Houses", "1MOY") Ownable(initialOwner) {
-        require(collectionMaxSupply != 0, "max supply is zero"); require(initialMaxPerWallet != 0, "wallet limit is zero");
-        maxSupply = collectionMaxSupply; mintPrice = initialMintPrice; maxPerWallet = initialMaxPerWallet; _setDefaultRoyalty(royaltyReceiver, royaltyBps);
+    constructor(address initialOwner, address royaltyReceiver, uint96 royaltyBps, uint256 initialMintPrice, uint256 initialMaxPerWallet) ERC721("One Minute of You: Royal Houses", "1MOY") Ownable(initialOwner) {
+        require(initialMaxPerWallet != 0, "wallet limit is zero");
+        mintPrice = initialMintPrice; maxPerWallet = initialMaxPerWallet; _setDefaultRoyalty(royaltyReceiver, royaltyBps);
     }
 
     function mintOneMinute(bytes32 seedHash, string calldata metadataURI) external payable nonReentrant whenNotPaused returns (uint256 tokenId) {
-        if (!publicMintOpen) revert MintClosed(); if (totalMinted >= maxSupply) revert SoldOut(); if (seedMinted[seedHash]) revert SeedAlreadyMinted(seedHash); if (bytes(metadataURI).length == 0) revert InvalidMetadataURI(); if (mintedByWallet[msg.sender] >= maxPerWallet) revert WalletLimitReached(); if (msg.value != mintPrice) revert IncorrectPayment(mintPrice, msg.value);
+        if (!publicMintOpen) revert MintClosed(); if (totalMinted >= MAX_SUPPLY) revert SoldOut(); if (seedMinted[seedHash]) revert SeedAlreadyMinted(seedHash); if (bytes(metadataURI).length == 0) revert InvalidMetadataURI(); if (mintedByWallet[msg.sender] >= maxPerWallet) revert WalletLimitReached(); if (msg.value != mintPrice) revert IncorrectPayment(mintPrice, msg.value);
         tokenId = _mintOneMinute(msg.sender, seedHash, metadataURI); mintedByWallet[msg.sender] += 1;
     }
 
     function ownerMint(address collector, bytes32 seedHash, string calldata metadataURI) external onlyOwner whenNotPaused returns (uint256 tokenId) {
-        if (totalMinted >= maxSupply) revert SoldOut(); if (seedMinted[seedHash]) revert SeedAlreadyMinted(seedHash); if (bytes(metadataURI).length == 0) revert InvalidMetadataURI(); tokenId = _mintOneMinute(collector, seedHash, metadataURI);
+        if (totalMinted >= MAX_SUPPLY) revert SoldOut(); if (seedMinted[seedHash]) revert SeedAlreadyMinted(seedHash); if (bytes(metadataURI).length == 0) revert InvalidMetadataURI(); tokenId = _mintOneMinute(collector, seedHash, metadataURI);
     }
 
     function _mintOneMinute(address collector, bytes32 seedHash, string calldata metadataURI) private returns (uint256 tokenId) {
