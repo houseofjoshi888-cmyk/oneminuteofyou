@@ -1,27 +1,19 @@
 "use client";
-
+/* eslint-disable @next/next/no-img-element -- NFT media is remote IPFS content with collector-defined dimensions. */
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useReadContract } from "wagmi";
-import { LivingRenderer } from "@/components/LivingRenderer";
-import { CertificateShare } from "@/components/CertificateShare";
-import type { InteractionFeatures } from "@/lib/analyzer";
-import { artworkName } from "@/lib/export";
-import { royalHouseFromWords } from "@/lib/houses";
-import { oneMinuteContractAbi, oneMinuteContractAddress } from "@/lib/contract";
+import { baseScanTokenUrl, ipfsGateway, oneMinuteContractAbi, oneMinuteContractAddress, openSeaItemUrl, RENDERER_VERSION } from "@/lib/contract";
+import { metadataTrait, type NftMetadata, shortAddress } from "@/lib/onchain";
+import { CertificateShare } from "./CertificateShare";
 
-interface Result { features: InteractionFeatures; hash: string; words: [number,number,number,number]; }
-
-export function MuseumMode({ tokenId }: { tokenId: number }) {
-  const [record,setRecord]=useState<Result|null>(null);
-  const [catalogue,setCatalogue]=useState(false);
-  useEffect(()=>{const timer=window.setTimeout(()=>{try{const stored=sessionStorage.getItem("one-minute-result"); if(stored)setRecord(JSON.parse(stored) as Result);}catch{sessionStorage.removeItem("one-minute-result");}},0);return()=>window.clearTimeout(timer);},[]);
-  const owner=useReadContract({address:oneMinuteContractAddress,abi:oneMinuteContractAbi,functionName:"ownerOf",args:[BigInt(tokenId)],query:{enabled:Boolean(oneMinuteContractAddress)}});
-  if(!record)return <main className="museum-page museum-empty"><header className="museum-nav"><Link href="/">ONE MINUTE OF YOU</Link><Link href="/generate">CREATE</Link></header><section><small>NO ARTWORK LOADED</small><h1>Your museum is empty.</h1><p>Create an artwork in this browser or open a verified on-chain token.</p><Link className="primary-button" href="/generate">BEGIN YOUR MINUTE <span>↗</span></Link></section></main>;
-  const house=royalHouseFromWords(record.words),title=artworkName(record.hash,record.features);
-  return <main className="museum-page protected-certificate" data-certificate={record.hash.slice(0,8).toUpperCase()} onContextMenu={event=>event.preventDefault()} style={{"--house-primary":house.primary,"--house-secondary":house.secondary} as React.CSSProperties}>
-    <header className="museum-nav"><Link href="/">ONE MINUTE OF YOU</Link><div><button onClick={()=>setCatalogue(value=>!value)}>{catalogue?"CLOSE DETAILS":"ARTWORK DETAILS"}</button><CertificateShare title={title} hash={record.hash}/></div></header>
-    <div className="museum-art"><LivingRenderer words={record.words} features={record.features}/></div>
-    {catalogue&&<aside className="museum-catalogue"><small>DETERMINISTIC PROVENANCE</small><h1>{title}</h1><dl><dt>House</dt><dd>{house.name}</dd><dt>Algorithm</dt><dd>{house.algorithm}</dd><dt>Seed</dt><dd>{record.hash}</dd><dt>Owner</dt><dd>{owner.data?String(owner.data):"Not minted on-chain"}</dd></dl>{oneMinuteContractAddress&&<a href={`https://basescan.org/token/${oneMinuteContractAddress}?a=${tokenId}`} target="_blank" rel="noreferrer">VIEW ON BASESCAN ↗</a>}</aside>}
-  </main>;
+export function MuseumMode({ tokenId }: { tokenId:number }) {
+  const [metadata,setMetadata]=useState<NftMetadata|null>(null); const [error,setError]=useState("");
+  const owner=useReadContract({address:oneMinuteContractAddress,abi:oneMinuteContractAbi,functionName:"ownerOf",args:[BigInt(tokenId)],query:{enabled:Boolean(oneMinuteContractAddress&&tokenId>0)} });
+  const uri=useReadContract({address:oneMinuteContractAddress,abi:oneMinuteContractAbi,functionName:"tokenURI",args:[BigInt(tokenId)],query:{enabled:Boolean(oneMinuteContractAddress&&tokenId>0)} });
+  useEffect(()=>{if(typeof uri.data!=="string")return;fetch(ipfsGateway(uri.data)||"").then(response=>{if(!response.ok)throw new Error();return response.json()}).then(value=>setMetadata(value as NftMetadata)).catch(()=>setError("The token exists, but its metadata could not be read from permanent storage."));},[uri.data]);
+  if(!oneMinuteContractAddress)return <main className="museum-page museum-empty"><header className="museum-nav"><Link href="/">ONE MINUTE OF YOU</Link><Link href="/gallery">LIVE COLLECTION</Link></header><section><small>CONTRACT NOT CONFIGURED</small><h1>No simulated artwork.</h1><p>This page will show token #{tokenId} only after the verified Base contract exists.</p><Link className="primary-button" href="/gallery">OPEN COLLECTION <span>↗</span></Link></section></main>;
+  if(owner.isError)return <main className="museum-page museum-empty"><section><small>UNMINTED TOKEN</small><h1>Artwork #{tokenId} has not entered the collection.</h1><Link className="primary-button" href="/gallery">BACK TO COLLECTION <span>↗</span></Link></section></main>;
+  const title=metadata?.name||`One Minute #${tokenId}`; const house=String(metadataTrait(metadata,"Royal House")||"Royal House");
+  return <main className="museum-page artwork-detail"><header className="museum-nav"><Link href="/gallery">← LIVE COLLECTION</Link><div><CertificateShare title={title} hash={metadata?.seed||String(tokenId)}/></div></header><div className="detail-art">{metadata?.animation_url?<iframe src={ipfsGateway(metadata.animation_url)} title={`${title} living artwork`} sandbox="allow-scripts"/>:metadata?.image?<img src={ipfsGateway(metadata.image)} alt={title}/>:<div className="nft-loading">{error||"READING PERMANENT METADATA…"}</div>}</div><aside className="detail-ledger"><p className="eyebrow"><span/>ARTWORK #{tokenId} · {house.toUpperCase()}</p><h1>{title}</h1><p>{metadata?.description||"Metadata is indexing from the token URI."}</p><dl><dt>Owner</dt><dd>{shortAddress(owner.data as string|undefined)}</dd><dt>Seed</dt><dd>{metadata?.seed||"Indexing"}</dd><dt>Renderer</dt><dd>{metadata?.renderer_version||RENDERER_VERSION}</dd><dt>Token URI</dt><dd>{typeof uri.data==="string"?uri.data:"Indexing"}</dd></dl><div className="detail-links">{openSeaItemUrl(tokenId)&&<a href={openSeaItemUrl(tokenId)} target="_blank" rel="noreferrer">VIEW ON OPENSEA ↗</a>}{baseScanTokenUrl(tokenId)&&<a href={baseScanTokenUrl(tokenId)} target="_blank" rel="noreferrer">VERIFY ON BASESCAN ↗</a>}</div><section className="seed-verification"><small>SEED VERIFICATION</small><p>The stored SHA-256 seed, movement feature record, and renderer version identify the exact deterministic render. A mismatch is visible rather than silently replaced.</p></section></aside></main>;
 }
