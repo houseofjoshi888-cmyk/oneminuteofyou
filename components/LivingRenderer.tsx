@@ -35,7 +35,7 @@ export function LivingRenderer({ words, features, onReady }: { words: [number, n
 
         canvas.width = 1024; canvas.height = 1024;
         const ctx = canvas.getContext("2d"); if (!ctx) throw new Error("Canvas unavailable");
-        const duration = 12_000, waveDuration = 48_000; cycleStartedRef.current = performance.now(); setRenderError(false);
+        const duration = 18_000, waveDuration = 56_000; cycleStartedRef.current = performance.now(); setRenderError(false);
         const draw = (now: number) => {
           if (!active) return; raf = requestAnimationFrame(draw); if (now - lastFrame < 33) return; lastFrame = now;
           ctx.globalCompositeOperation = "source-over"; ctx.globalAlpha = 1;
@@ -44,8 +44,15 @@ export function LivingRenderer({ words, features, onReady }: { words: [number, n
             ctx.fillStyle = house.background; ctx.fillRect(0, 0, canvas.width, canvas.height);
             const wavePhase = ((now - cycleStartedRef.current) % waveDuration) / waveDuration * Math.PI * 2;
             const direction = words[1] % 2 ? 1 : -1;
-            const waveScale = 1.012 + Math.sin(wavePhase) * .006;
-            ctx.save(); ctx.translate(512 + Math.sin(wavePhase) * 4, 512 + Math.cos(wavePhase * .73) * 3); ctx.rotate(Math.sin(wavePhase * .61) * .006 * direction); ctx.scale(waveScale, waveScale); ctx.drawImage(base, -512, -512); ctx.restore();
+            const motion = config.algorithm === "Crystal Growth" ? { driftX: 1.2, driftY: 1.2, rotate: .0025, scale: .004 }
+              : config.algorithm === "Flow Fields" ? { driftX: 5.5, driftY: 2.2, rotate: .002, scale: .003 }
+              : config.algorithm === "Fractal Roots" ? { driftX: 1.4, driftY: 3.2, rotate: .0015, scale: .005 }
+              : config.algorithm === "Magnetic Nebula" ? { driftX: 2.8, driftY: 2.8, rotate: .005, scale: .006 }
+              : { driftX: 1.2, driftY: 1.2, rotate: .003, scale: .004 };
+            const waveScale = 1.008 + Math.sin(wavePhase) * motion.scale;
+            const rotation = config.algorithm === "Sacred Geometry" ? wavePhase * .0015 * direction : Math.sin(wavePhase * .61) * motion.rotate * direction;
+            ctx.save(); ctx.translate(512 + Math.sin(wavePhase) * motion.driftX, 512 + Math.cos(wavePhase * .73) * motion.driftY); ctx.rotate(rotation); ctx.scale(waveScale, waveScale); ctx.drawImage(base, -512, -512); ctx.restore();
+            const glow = ctx.createRadialGradient(512,512,40,512,512,470); glow.addColorStop(0,`${house.primary}10`); glow.addColorStop(.55,`${house.secondary}08`); glow.addColorStop(1,"transparent"); ctx.globalCompositeOperation="screen";ctx.globalAlpha=.55+.18*Math.sin(wavePhase);ctx.fillStyle=glow;ctx.fillRect(0,0,1024,1024);
             const cycle = elapsed / duration; ctx.globalCompositeOperation = "lighter";
             for (let i = words[0] % 41; i < frame.tones.length; i += 211) {
               const phase = (cycle + ((i * 2654435761) >>> 0) / 4294967296) % 1;
@@ -53,7 +60,7 @@ export function LivingRenderer({ words, features, onReady }: { words: [number, n
               const travel = .5 - .5 * Math.cos(phase * Math.PI * 2);
               const x = (frame.starts[i * 2] + (frame.ends[i * 2] - frame.starts[i * 2]) * travel) * canvas.width;
               const y = (frame.starts[i * 2 + 1] + (frame.ends[i * 2 + 1] - frame.starts[i * 2 + 1]) * travel) * canvas.height;
-              ctx.globalAlpha = pulse * .9; ctx.fillStyle = i % 3 ? house.secondary : "#ffffff"; ctx.shadowColor = house.primary; ctx.shadowBlur = canvas.width * .012;
+              ctx.globalAlpha = pulse * .62; ctx.fillStyle = i % 3 ? house.secondary : house.primary; ctx.shadowColor = house.primary; ctx.shadowBlur = canvas.width * .009;
               ctx.beginPath(); ctx.arc(x, y, canvas.width * (.0007 + pulse * .0011), 0, Math.PI * 2); ctx.fill();
             }
             ctx.shadowBlur = 0; ctx.globalAlpha = 1;
@@ -70,5 +77,5 @@ export function LivingRenderer({ words, features, onReady }: { words: [number, n
   }, [words, features, onReady]);
 
   const toggleLiving = () => setLiving(value => { livingRef.current = !value; if (!value) cycleStartedRef.current = performance.now(); return !value; });
-  return <div className="art-panel living-panel" onContextMenu={event=>event.preventDefault()}><canvas ref={canvasRef} aria-label={living ? "Your live NFT drawing itself" : "Your complete still NFT"} />{rendering && <div className="rendering">RENDERING YOUR NFT</div>}{renderError && <div className="rendering render-error">NFT PREVIEW UNAVAILABLE</div>}<div className="preview-quality">ONE NFT · LIVE + STILL</div><button className="living-toggle" onClick={toggleLiving} disabled={renderError}><span className={living ? "is-live" : ""} /> {living ? "LIVE NFT · DRAWING" : "STILL NFT · COMPLETE"}</button></div>;
+  return <div className="art-panel living-panel" onContextMenu={event=>event.preventDefault()}><canvas ref={canvasRef} aria-label={living ? "Your subtly animated House-colour NFT" : "Your complete still NFT"} />{rendering && <div className="rendering">RENDERING YOUR HOUSE PATTERN</div>}{renderError && <div className="rendering render-error">NFT PREVIEW UNAVAILABLE</div>}<div className="preview-quality">HOUSE PALETTE · LIVE + STILL</div><button className="living-toggle" onClick={toggleLiving} disabled={renderError}><span className={living ? "is-live" : ""} /> {living ? "LIVE NFT · SUBTLE MOTION" : "STILL NFT · COMPLETE"}</button></div>;
 }
