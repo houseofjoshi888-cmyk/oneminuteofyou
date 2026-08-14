@@ -232,3 +232,9 @@ body{background:radial-gradient(ellipse at 50% -12%,#2a1d0d 0,transparent 34%),l
 .primary-button:active,.secondary-button:active,.wallet-button:active,.record-button:active,.living-toggle:active,.reference-enter:active,.reference-actions>a:active{transform:translateY(3px);box-shadow:inset 0 1px #fff8dc38,inset 0 -1px #0005,0 3px 0 #0d0a06,0 8px 18px #0008}
 @media(max-width:760px){.reference-shell,.result-grid,.studio-reference-stage,.artwork-detail{box-shadow:inset 0 1px #fff1c214,0 12px 38px #000b}.house-dashboard-grid>a,.onchain-grid article,.house-lore-grid article{box-shadow:inset 0 1px #fff3d214,0 8px 20px #0008}.primary-button,.secondary-button,.wallet-button,.record-button,.living-toggle{box-shadow:inset 0 1px #fff8dc45,inset 0 -2px #0004,0 5px 0 #0d0a06,0 9px 18px #0008}}
 @media(prefers-reduced-motion:reduce){.house-dashboard-grid>a,.onchain-grid article,.house-lore-grid article,.primary-button,.secondary-button,.wallet-button,.record-button,.living-toggle{transition:none!important;transform:none!important}}
+
+/* Exit Studio is a true, prominent navigation button. */
+.studio-exit{border-radius:10px;border:1px solid #e2bd6d;background:linear-gradient(135deg,#493719,#171007);color:#ffe8b2;box-shadow:inset 0 1px #fff2c94a,inset 0 -2px #0005,0 6px 0 #0b0804,0 12px 26px #0009;transition:transform .22s ease,background .22s ease,border-color .22s ease,box-shadow .22s ease}
+.studio-exit:hover{border-color:#ffe1a0;background:linear-gradient(135deg,#715326,#231709);color:#fff7e4;transform:translateY(-2px);box-shadow:inset 0 1px #fff5d071,0 8px 0 #0b0804,0 16px 30px #000b,0 0 24px #dba74832}
+.studio-exit:active{transform:translateY(3px);box-shadow:inset 0 1px #fff2c942,0 2px 0 #0b0804,0 7px 16px #0009}.studio-exit:focus-visible{outline:2px solid #ffe29a;outline-offset:3px}
+@media(max-width:760px){.studio-exit{min-height:42px;padding:10px 12px;box-shadow:inset 0 1px #fff2c93d,0 4px 0 #0b0804,0 8px 17px #0008}}
