@@ -202,10 +202,12 @@ export function drawMathematicalHousePattern(ctx: CanvasRenderingContext2D, fram
   for (let band = 0; band < bandCount; band++) {
     const color = palette[(band + paletteOffset) % palette.length];
     const offset = (band - (bandCount - 1) / 2) / Math.max(1, bandCount - 1);
+    const particles: Array<[number, number, number]> = [];
+    const dust: Array<[number, number, number]> = [];
     ctx.strokeStyle = `rgb(${color[0]},${color[1]},${color[2]})`;
-    ctx.globalAlpha = .24 + seed(band + 7) * .48;
-    ctx.lineWidth = s * (.00072 + seed(band + 13) * .00122);
-    ctx.shadowColor = ctx.strokeStyle; ctx.shadowBlur = s * .004;
+    ctx.globalAlpha = .045 + seed(band + 7) * .075;
+    ctx.lineWidth = s * (.00016 + seed(band + 13) * .00032);
+    ctx.shadowColor = ctx.strokeStyle; ctx.shadowBlur = s * .0015;
     ctx.beginPath();
     let drawing = false;
     for (let step = 0; step <= 180; step++) {
@@ -254,8 +256,29 @@ export function drawMathematicalHousePattern(ctx: CanvasRenderingContext2D, fram
       // Seeded breathing room prevents every work becoming a solid line blanket.
       const inGap = Math.sin(t * Math.PI * 2 * gapFrequency + gapPhase + band * .11) > .91 + seed(band + 109) * .055;
       if (!drawing || inGap) { ctx.moveTo(x * s, y * s); drawing = !inGap; } else ctx.lineTo(x * s, y * s);
+      if (!inGap) {
+        const particleTone = seed(band * 181 + step + 127);
+        const particleRadius = s * (.00016 + particleTone * .00058 + (step % 29 === 0 ? .00072 : 0));
+        particles.push([x * s, y * s, particleRadius]);
+        if ((step + band) % 3 === 0) {
+          const dustAngle = seed(band * 193 + step + 151) * Math.PI * 2;
+          const dustSpread = s * (.0015 + seed(band + step + 163) * (.007 + frame.kinetics.speed * .006));
+          dust.push([x * s + Math.cos(dustAngle) * dustSpread, y * s + Math.sin(dustAngle) * dustSpread, particleRadius * (.22 + seed(step + 173) * .34)]);
+        }
+      }
     }
     ctx.stroke();
+    ctx.fillStyle = `rgb(${color[0]},${color[1]},${color[2]})`;
+    ctx.globalAlpha = .32 + seed(band + 179) * .42;
+    ctx.shadowBlur = s * (.0025 + seed(band + 181) * .0035);
+    ctx.beginPath();
+    for (const [x, y, radius] of particles) { ctx.moveTo(x + radius, y); ctx.arc(x, y, radius, 0, Math.PI * 2); }
+    ctx.fill();
+    ctx.globalAlpha = .14 + seed(band + 191) * .26;
+    ctx.shadowBlur = s * .0012;
+    ctx.beginPath();
+    for (const [x, y, radius] of dust) { ctx.moveTo(x + radius, y); ctx.arc(x, y, radius, 0, Math.PI * 2); }
+    ctx.fill();
   }
   ctx.restore();
 }
