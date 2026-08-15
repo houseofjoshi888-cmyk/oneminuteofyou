@@ -151,19 +151,63 @@ export function drawMathematicalHousePattern(ctx: CanvasRenderingContext2D, fram
   const seed = (index: number) => frame.tones[index % frame.tones.length] / 255;
   const phase = seed(31) * Math.PI * 2;
   const order = 3 + Math.floor(seed(47) * 7 + frame.kinetics.curvature * 5 + frame.kinetics.acceleration * 3);
-  const bandCount = 20 + Math.round(frame.kinetics.speed * 28 + frame.kinetics.coverage * 14);
+  const bandCount = 24 + Math.round(frame.kinetics.speed * 26 + frame.kinetics.coverage * 18);
   const motionScale = .82 + frame.kinetics.speed * .34 + frame.kinetics.acceleration * .16;
   const curveScale = .75 + frame.kinetics.curvature * .5;
   const traceCount = Math.max(1, frame.trace.length / 2);
+  let traceX = 0, traceY = 0;
+  for (let point = 0; point < traceCount; point++) { traceX += frame.trace[point * 2]; traceY += frame.trace[point * 2 + 1]; }
+  traceX /= traceCount; traceY /= traceCount;
+  const focalX = .5 + (traceX - .5) * .22 + (seed(61) - .5) * .1;
+  const focalY = .5 + (traceY - .5) * .22 + (seed(67) - .5) * .1;
+  const rotation = (seed(71) - .5) * 1.35;
+  const aspectX = .78 + seed(73) * .38;
+  const aspectY = .78 + seed(79) * .38;
+  const gapPhase = seed(83) * Math.PI * 2;
+  const gapFrequency = 2 + Math.floor(seed(89) * 4);
+  const paletteOffset = Math.floor(seed(97) * palette.length);
+  const houseWarp = (x: number, y: number, t: number, offset: number): [number, number] => {
+    const dx = (x - .5) * aspectX, dy = (y - .5) * aspectY;
+    const cos = Math.cos(rotation), sin = Math.sin(rotation);
+    let rx = dx * cos - dy * sin, ry = dx * sin + dy * cos;
+    if (config.algorithm === "Crystal Growth") {
+      const angle = Math.atan2(ry, rx), radius = Math.hypot(rx, ry);
+      const facets = 5 + Math.floor(seed(101) * 5);
+      const snapped = Math.round(angle / (Math.PI * 2 / facets)) * (Math.PI * 2 / facets);
+      const blend = .18 + frame.kinetics.acceleration * .24;
+      rx = Math.cos(angle * (1 - blend) + snapped * blend) * radius + Math.sign(Math.sin(t * Math.PI * facets + phase)) * offset * .026;
+      ry = Math.sin(angle * (1 - blend) + snapped * blend) * radius + Math.sin(t * Math.PI * (facets + 2) + phase) * .012;
+    } else if (config.algorithm === "Flow Fields") {
+      rx += Math.sin((ry * (8 + order) + t * Math.PI * 2) + phase) * (.018 + frame.kinetics.speed * .025);
+      ry += Math.sin((rx * 9 - t * Math.PI * (2 + gapFrequency)) - phase) * .012;
+    } else if (config.algorithm === "Fractal Roots") {
+      const level = 2 + Math.floor(t * (3 + gapFrequency));
+      const branch = Math.sin(t * Math.PI * Math.pow(2, Math.min(4, level)) + phase + offset * 8);
+      rx += branch * (.018 + t * .035) * (1 + frame.kinetics.coverage * .5);
+      ry -= Math.abs(offset) * .035 * (1 - t) + Math.cos(t * Math.PI * (order + 1)) * .01;
+    } else if (config.algorithm === "Magnetic Nebula") {
+      const magnet = .12 + seed(103) * .08;
+      const left = Math.hypot(rx + magnet, ry), right = Math.hypot(rx - magnet, ry);
+      rx += (1 / Math.max(.08, left) - 1 / Math.max(.08, right)) * .009;
+      ry += Math.sin(t * Math.PI * 4 + phase) * (.014 + Math.abs(offset) * .025);
+    } else {
+      const angle = Math.atan2(ry, rx), radius = Math.hypot(rx, ry);
+      const petals = 5 + Math.floor(seed(107) * 8);
+      const radial = 1 + Math.sin(angle * petals + phase) * (.08 + frame.kinetics.curvature * .12);
+      rx = Math.cos(angle) * radius * radial; ry = Math.sin(angle) * radius * radial;
+    }
+    return [focalX + rx, focalY + ry];
+  };
   ctx.save(); ctx.globalCompositeOperation = "lighter"; ctx.lineCap = "round"; ctx.lineJoin = "round";
   for (let band = 0; band < bandCount; band++) {
-    const color = palette[band % palette.length];
+    const color = palette[(band + paletteOffset) % palette.length];
     const offset = (band - (bandCount - 1) / 2) / Math.max(1, bandCount - 1);
     ctx.strokeStyle = `rgb(${color[0]},${color[1]},${color[2]})`;
-    ctx.globalAlpha = .2 + seed(band + 7) * .42;
-    ctx.lineWidth = s * (.00065 + seed(band + 13) * .00115);
+    ctx.globalAlpha = .24 + seed(band + 7) * .48;
+    ctx.lineWidth = s * (.00072 + seed(band + 13) * .00122);
     ctx.shadowColor = ctx.strokeStyle; ctx.shadowBlur = s * .004;
     ctx.beginPath();
+    let drawing = false;
     for (let step = 0; step <= 180; step++) {
       const t = step / 180, a = t * Math.PI * 2, wobble = Math.sin(a * order + phase + band * .17);
       let x = .5, y = .5;
@@ -205,8 +249,11 @@ export function drawMathematicalHousePattern(ctx: CanvasRenderingContext2D, fram
       } else {
         x = .04 + t * .92; y = .08 + (band / Math.max(1, bandCount - 1)) * .84 + Math.sin(t * Math.PI * (4 + order) + phase + band * .29) * (.018 + seed(16) * .045) * curveScale;
       }
-      x = Math.max(.015, Math.min(.985, x)); y = Math.max(.015, Math.min(.985, y));
-      if (!step) ctx.moveTo(x * s, y * s); else ctx.lineTo(x * s, y * s);
+      [x, y] = houseWarp(x, y, t, offset);
+      x = Math.max(.018, Math.min(.982, x)); y = Math.max(.018, Math.min(.982, y));
+      // Seeded breathing room prevents every work becoming a solid line blanket.
+      const inGap = Math.sin(t * Math.PI * 2 * gapFrequency + gapPhase + band * .11) > .91 + seed(band + 109) * .055;
+      if (!drawing || inGap) { ctx.moveTo(x * s, y * s); drawing = !inGap; } else ctx.lineTo(x * s, y * s);
     }
     ctx.stroke();
   }

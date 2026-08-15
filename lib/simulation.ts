@@ -11,9 +11,16 @@ export const COMPOSITIONS = ["Solar Vortex", "Twin Bloom", "Silk Current", "Orbi
 export function isSurfaceComposition(composition: number) { void composition; return false; }
 export function compositionFor(words: readonly number[], features: InteractionFeatures) {
   const science = scientificSignature(features, words);
-  // House controls its palette and field behavior. The seed independently
-  // selects one of thirteen macro topologies, preventing five repeated sigils.
-  const variation = ((words[0] ^ words[1] ^ words[2]) >>> 0) + science.symmetry * 31 + science.harmonicOrder * 17 + Math.floor(science.entropy * 10_000) + features.taps * 13 + features.pauses * 19;
+  // The complete seed and quantized motion signature choose the macro topology.
+  // House assignment only controls the visual grammar, never the whole design.
+  const rotated = ((words[1] << 7) | (words[1] >>> 25)) >>> 0;
+  const folded = (words[0] ^ rotated ^ Math.imul(words[2], 0x9e3779b1) ^ Math.imul(words[3], 0x85ebca6b)) >>> 0;
+  const motion = Math.floor(features.distance * 997)
+    ^ Math.floor(features.averageSpeed * 65_521)
+    ^ Math.floor(features.averageAcceleration * 8_191)
+    ^ Math.floor(features.averageCurvature * 4_093)
+    ^ Math.floor(features.coverage * 1_009);
+  const variation = (folded ^ motion) + science.symmetry * 31 + science.harmonicOrder * 17 + Math.floor(science.entropy * 10_000) + features.taps * 13 + features.pauses * 19;
   return variation % 13;
 }
 
