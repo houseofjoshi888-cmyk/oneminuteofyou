@@ -238,3 +238,11 @@ body{background:radial-gradient(ellipse at 50% -12%,#2a1d0d 0,transparent 34%),l
 .studio-exit:hover{border-color:#ffe1a0;background:linear-gradient(135deg,#715326,#231709);color:#fff7e4;transform:translateY(-2px);box-shadow:inset 0 1px #fff5d071,0 8px 0 #0b0804,0 16px 30px #000b,0 0 24px #dba74832}
 .studio-exit:active{transform:translateY(3px);box-shadow:inset 0 1px #fff2c942,0 2px 0 #0b0804,0 7px 16px #0009}.studio-exit:focus-visible{outline:2px solid #ffe29a;outline-offset:3px}
 @media(max-width:760px){.studio-exit{min-height:42px;padding:10px 12px;box-shadow:inset 0 1px #fff2c93d,0 4px 0 #0b0804,0 8px 17px #0008}}
+
+/* Homepage stays image-led: no square cards or boxed 3D decorations. */
+.reference-landing{background:radial-gradient(ellipse at 78% 44%,#7a3f171f,transparent 29%),radial-gradient(ellipse at 68% 62%,#8f17331a,transparent 35%),#020303}
+.reference-shell{position:relative;isolation:isolate;box-shadow:none;transform:none;background:radial-gradient(ellipse at 74% 48%,#c1903a0d,transparent 38%),#020303}
+.reference-shell:before{content:"";position:absolute;z-index:-1;width:min(58vw,850px);aspect-ratio:1;right:3%;top:10%;border-radius:50%;background:radial-gradient(circle,#dfad4d17 0,#a82d3910 34%,transparent 68%);filter:blur(22px);pointer-events:none}
+.reference-nav,.reference-copy{background:none;box-shadow:none}.reference-art{filter:drop-shadow(0 30px 42px #000) drop-shadow(0 0 24px #d09a3923);transform:none}.reference-art img{filter:saturate(1.05) contrast(1.04)}
+.reference-enter,.reference-actions>a{border-radius:999px;padding-inline:28px;box-shadow:inset 0 1px #fff7d257,0 8px 24px #0009}.reference-copy hr{background:linear-gradient(90deg,#a98749,transparent);border:0;height:1px}
+@media(max-width:760px){.reference-shell:before{width:95vw;right:-30%;top:18%}.reference-art{filter:drop-shadow(0 18px 28px #000) drop-shadow(0 0 18px #d09a391d)}}
