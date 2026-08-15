@@ -266,6 +266,12 @@ body{font-family:var(--font-sans);font-size:15px;line-height:1.65;letter-spacing
 .reference-enter,.reference-actions>a{border-radius:999px;padding-inline:28px;box-shadow:inset 0 1px #fff7d257,0 8px 24px #0009}.reference-copy hr{background:linear-gradient(90deg,#a98749,transparent);border:0;height:1px}
 @media(max-width:760px){.reference-shell:before{width:95vw;right:-30%;top:18%}.reference-art{filter:drop-shadow(0 18px 28px #000) drop-shadow(0 0 18px #d09a391d)}}
 
+/* Homepage: pure black canvas behind the five-House particle artwork. */
+.reference-landing,.reference-shell,.reference-hero{background:#000!important}
+.reference-shell:before{display:none!important}
+.reference-art:after{background:linear-gradient(90deg,#000 0%,transparent 24%),linear-gradient(0deg,#000 0%,transparent 13%)}
+@media(max-width:700px){.reference-art:after{background:linear-gradient(180deg,#000 0%,transparent 24%),linear-gradient(0deg,#000 0%,transparent 8%)}}
+
 
 /* Certificate layout: every text block owns a row, so long titles never collide. */
 .certificate-share,.certificate-share.is-open{width:100%;min-width:0}.certificate-share-trigger{max-width:100%}.share-sheet{width:100%;max-width:620px;min-width:0;overflow:hidden;border-radius:12px}.share-card{display:grid;grid-template-columns:52px minmax(0,1fr) auto;grid-template-rows:auto auto auto auto auto;column-gap:18px;row-gap:6px;min-height:270px;padding:26px 28px 24px}.share-card:after{display:none}.share-card>small{grid-column:1/-1;grid-row:1}.share-card>i{position:relative;left:auto;top:auto;grid-column:1;grid-row:2/5;align-self:center;justify-self:center}.share-card>p{grid-column:2/4;grid-row:2;margin:24px 0 0;padding:0}.share-card>h3{grid-column:2/4;grid-row:3;min-width:0;margin:0;padding:0;font-size:clamp(30px,4vw,46px);line-height:1.02;overflow-wrap:anywhere;text-wrap:balance}.share-card>em{grid-column:2/4;grid-row:4;min-width:0;padding:0;font-size:clamp(20px,2.7vw,27px);line-height:1.12;overflow-wrap:anywhere}.share-card>b{position:relative;right:auto;bottom:auto;grid-column:3;grid-row:5;align-self:end;justify-self:end;white-space:nowrap}.share-card>span{position:relative;left:auto;bottom:auto;grid-column:1/3;grid-row:5;align-self:end;min-width:0;overflow-wrap:anywhere}.share-message{overflow-wrap:anywhere}.share-actions button{min-width:0;flex:1 1 150px;white-space:normal;line-height:1.35}.museum-nav .share-sheet{max-height:calc(100dvh - 72px);overflow-y:auto}
