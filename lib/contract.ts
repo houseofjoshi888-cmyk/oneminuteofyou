@@ -2,7 +2,7 @@ import type { Address } from "viem";
 
 export const BASE_CHAIN_ID = 8453;
 export const MAX_SUPPLY = 500;
-export const RENDERER_VERSION = "OMOY-KG-3.1.0";
+export const RENDERER_VERSION = "OMOY-KG-3.2.0";
 const configuredAddress = process.env.NEXT_PUBLIC_ONE_MINUTE_NFT_ADDRESS;
 export const oneMinuteContractAddress = configuredAddress && /^0x[a-fA-F0-9]{40}$/.test(configuredAddress) ? configuredAddress as Address : undefined;
 export const oneMinuteContractAbi = [

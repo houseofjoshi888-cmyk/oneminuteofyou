@@ -15,7 +15,7 @@ export function HomeExperience(){return <main className="reference-landing">
     </nav>
     <section className="reference-hero">
       <div className="reference-copy"><span>✣</span><h1>YOU ARE<br/>THE ORIGINAL<br/>ALGORITHM.</h1><hr/><p>Record one minute of movement.<br/>We transform it into generative art.<br/>You own it forever.</p><div className="reference-actions"><Link href="/generate">START YOUR MINUTE <b>→</b></Link></div></div>
-      <div className="reference-art" aria-label="A dancer formed from luminous particles"><img src="/landing-dancer.png" alt="A dancer formed from gold and crimson particles" /></div>
+      <div className="reference-art" aria-label="The five Royal Houses converging in luminous particles"><img src="/five-houses-convergence.png" alt="Peridot, Ruby, Sapphire, Turquoise, and Gold particle forms converging" /></div>
     </section>
   </div>
   <SiteFooter />

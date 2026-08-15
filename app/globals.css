@@ -242,7 +242,7 @@ body{background:radial-gradient(ellipse at 50% -12%,#2a1d0d 0,transparent 34%),l
 .reference-landing{background:radial-gradient(ellipse at 78% 44%,#7a3f171f,transparent 29%),radial-gradient(ellipse at 68% 62%,#8f17331a,transparent 35%),#020303}
 .reference-shell{position:relative;isolation:isolate;box-shadow:none;transform:none;background:radial-gradient(ellipse at 74% 48%,#c1903a0d,transparent 38%),#020303}
 .reference-shell:before{content:"";position:absolute;z-index:-1;width:min(58vw,850px);aspect-ratio:1;right:3%;top:10%;border-radius:50%;background:radial-gradient(circle,#dfad4d17 0,#a82d3910 34%,transparent 68%);filter:blur(22px);pointer-events:none}
-.reference-nav,.reference-copy{background:none;box-shadow:none}.reference-art{filter:drop-shadow(0 30px 42px #000) drop-shadow(0 0 24px #d09a3923);transform:none}.reference-art img{filter:saturate(1.05) contrast(1.04)}
+.reference-nav,.reference-copy{background:none;box-shadow:none}.reference-art{filter:drop-shadow(0 30px 42px #000) drop-shadow(0 0 24px #d09a3923);transform:none}.reference-art img{object-fit:contain;object-position:center right;mix-blend-mode:screen;filter:saturate(1.18) brightness(1.08) contrast(1.04) drop-shadow(0 0 24px #d9b35a38);transform:scale(1.04)}
 .reference-enter,.reference-actions>a{border-radius:999px;padding-inline:28px;box-shadow:inset 0 1px #fff7d257,0 8px 24px #0009}.reference-copy hr{background:linear-gradient(90deg,#a98749,transparent);border:0;height:1px}
 @media(max-width:760px){.reference-shell:before{width:95vw;right:-30%;top:18%}.reference-art{filter:drop-shadow(0 18px 28px #000) drop-shadow(0 0 18px #d09a391d)}}
 

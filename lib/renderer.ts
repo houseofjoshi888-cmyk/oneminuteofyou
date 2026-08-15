@@ -8,8 +8,8 @@ export const DEFAULT_RENDER: RenderConfig = {
   background: "#05040a",
   gold: [238, 196, 92],
   palette: [[245, 199, 90], [255, 91, 168], [119, 103, 255], [52, 211, 198], [255, 143, 82]],
-  lineAlpha: 0.09,
-  lineWidth: 0.42,
+  lineAlpha: 0.14,
+  lineWidth: 0.68,
 };
 
 export function renderConfigForHouse(words: readonly number[], size = 4096): RenderConfig {
@@ -269,8 +269,8 @@ export function drawMathematicalHousePattern(ctx: CanvasRenderingContext2D, fram
     }
     ctx.stroke();
     ctx.fillStyle = `rgb(${color[0]},${color[1]},${color[2]})`;
-    ctx.globalAlpha = .32 + seed(band + 179) * .42;
-    ctx.shadowBlur = s * (.0025 + seed(band + 181) * .0035);
+    ctx.globalAlpha = .42 + seed(band + 179) * .48;
+    ctx.shadowBlur = s * (.0035 + seed(band + 181) * .005);
     ctx.beginPath();
     for (const [x, y, radius] of particles) { ctx.moveTo(x + radius, y); ctx.arc(x, y, radius, 0, Math.PI * 2); }
     ctx.fill();
@@ -312,7 +312,7 @@ export function renderArtwork(canvas: HTMLCanvasElement, frame: ParticleFrame, c
   const ctx = canvas.getContext("2d", { alpha: false }); if (!ctx) return;
   ctx.fillStyle = config.background; ctx.fillRect(0, 0, config.size, config.size);
   const aura = ctx.createRadialGradient(config.size * .5, config.size * .5, 0, config.size * .5, config.size * .5, config.size * .68);
-  aura.addColorStop(0, `${config.accent || "#f2c65c"}38`); aura.addColorStop(.42, `${config.accent || "#f2c65c"}17`); aura.addColorStop(1, "transparent");
+  aura.addColorStop(0, `${config.accent || "#f2c65c"}52`); aura.addColorStop(.42, `${config.accent || "#f2c65c"}24`); aura.addColorStop(1, "transparent");
   ctx.fillStyle = aura; ctx.fillRect(0, 0, config.size, config.size);
   ctx.lineCap = "round"; ctx.globalCompositeOperation = "lighter";
   const palette = config.palette || [[config.gold[0], config.gold[1], config.gold[2]], [255, 92, 170], [97, 206, 220], [142, 110, 255]];
@@ -339,7 +339,8 @@ export function renderArtwork(canvas: HTMLCanvasElement, frame: ParticleFrame, c
   ctx.shadowBlur = 0;
   for (let bin = 0; paths && bin < toneBins; bin++) {
     const tone = (bin + .5) / toneBins; const scaled = tone * (palette.length - 1); const left = Math.floor(scaled); const color = mix(palette[left], palette[Math.min(palette.length - 1, left + 1)], scaled - left);
-    ctx.strokeStyle = `rgba(${color[0]},${color[1]},${color[2]},${config.lineAlpha * (.48 + tone * .8)})`; ctx.lineWidth = config.lineWidth * (.65 + tone * .8); ctx.stroke(paths[bin]);
+    ctx.shadowColor = `rgb(${color[0]},${color[1]},${color[2]})`; ctx.shadowBlur = config.size * (.0018 + tone * .0028);
+    ctx.strokeStyle = `rgba(${color[0]},${color[1]},${color[2]},${config.lineAlpha * (.72 + tone * 1.18)})`; ctx.lineWidth = config.lineWidth * (.82 + tone * 1.12); ctx.stroke(paths[bin]);
   }
   ctx.shadowBlur = 0;
   for (let i = 17; i < count; i += 73) {
