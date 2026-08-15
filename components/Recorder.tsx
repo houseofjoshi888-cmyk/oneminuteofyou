@@ -5,6 +5,7 @@ import { createRecording, normalizedPoint, type InteractionPoint, type Recording
 
 const DURATION = 60_000;
 interface RecorderProps { onComplete: (recording: Recording) => void; }
+const emitSound = (type: "start" | "finish" | "draw" | "draw-stop", detail: Record<string, number> = {}) => window.dispatchEvent(new CustomEvent("omoy:sound", { detail: { type, ...detail } }));
 
 export function Recorder({ onComplete }: RecorderProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -20,10 +21,11 @@ export function Recorder({ onComplete }: RecorderProps) {
   const distance = useRef(0);
   const turns = useRef(0);
   const previousAngle = useRef<number | null>(null);
+  const lastSoundAt = useRef(0);
 
   const finish = useCallback(() => {
     if (!active) return;
-    setActive(false); cancelAnimationFrame(frame.current);
+    setActive(false); cancelAnimationFrame(frame.current); emitSound("finish");
     const canvas = canvasRef.current;
     if (canvas) onComplete(createRecording(points.current, DURATION, canvas.clientWidth, canvas.clientHeight, recordingNonce.current));
   }, [active, onComplete]);
@@ -36,11 +38,12 @@ export function Recorder({ onComplete }: RecorderProps) {
 
   useEffect(() => { if (!active) return; const tick = () => { const next = Math.max(0, DURATION - (performance.now() - startedAt.current)); setRemaining(next); if (next <= 0) finish(); else frame.current = requestAnimationFrame(tick); }; frame.current = requestAnimationFrame(tick); return () => cancelAnimationFrame(frame.current); }, [active, finish]);
 
-  const start = () => { points.current = []; cells.current.clear(); distance.current = 0; turns.current = 0; previousAngle.current = null; recordingNonce.current = crypto.randomUUID?.() || `${Date.now()}-${performance.now()}`; setSampleCount(0); setMetrics({ coverage:0, distance:0, velocity:0, turns:0 }); const canvas = canvasRef.current; const ctx = canvas?.getContext("2d"); if (canvas && ctx) ctx.clearRect(0, 0, canvas.clientWidth, canvas.clientHeight); startedAt.current = performance.now(); setRemaining(DURATION); setActive(true); };
+  const start = () => { points.current = []; cells.current.clear(); distance.current = 0; turns.current = 0; previousAngle.current = null; recordingNonce.current = crypto.randomUUID?.() || `${Date.now()}-${performance.now()}`; setSampleCount(0); setMetrics({ coverage:0, distance:0, velocity:0, turns:0 }); const canvas = canvasRef.current; const ctx = canvas?.getContext("2d"); if (canvas && ctx) ctx.clearRect(0, 0, canvas.clientWidth, canvas.clientHeight); startedAt.current = performance.now(); setRemaining(DURATION); setActive(true); emitSound("start"); };
   const capture = (event: React.PointerEvent<HTMLCanvasElement>, kind: "move" | "down" | "up") => {
     if (!active) return; const canvas = canvasRef.current; if (!canvas) return;
     if (kind === "down") { try { canvas.setPointerCapture(event.pointerId); } catch { /* Some embedded mobile browsers do not expose pointer capture. */ } }
     const point = normalizedPoint(event.nativeEvent, canvas.getBoundingClientRect(), startedAt.current, kind); points.current.push(point); cells.current.add(`${Math.min(9,Math.floor(point.x*10))}:${Math.min(9,Math.floor(point.y*10))}`); if (points.current.length % 8 === 0 || kind !== "move") setSampleCount(points.current.length);
+    if (kind === "up") emitSound("draw-stop"); else if (kind === "down" || performance.now() - lastSoundAt.current > 45) { lastSoundAt.current = performance.now(); emitSound("draw", { x: point.x, y: point.y, pressure: point.pressure }); }
     if (points.current.length > 1) { const previous = points.current[points.current.length - 2], dx=point.x-previous.x, dy=point.y-previous.y, segment=Math.hypot(dx,dy), dt=Math.max(1,point.t-previous.t), angle=Math.atan2(dy,dx); distance.current+=segment; if(segment>.0005 && previousAngle.current!==null){let turn=Math.abs(angle-previousAngle.current); if(turn>Math.PI)turn=Math.PI*2-turn; if(turn>.18)turns.current++;} if(segment>.0005)previousAngle.current=angle; if(points.current.length%8===0||kind!=="move")setMetrics({coverage:cells.current.size,distance:distance.current,velocity:segment/(dt/1000),turns:turns.current}); }
     if (points.current.length > 1) { const previous = points.current[points.current.length - 2], ctx = canvas.getContext("2d"); if (ctx) { const light = 58 + point.y * 24; ctx.strokeStyle = `hsla(41,72%,${light}%,${0.24 + point.pressure * .45})`; ctx.shadowColor = "rgba(217,181,103,.8)"; ctx.shadowBlur = 9; ctx.lineWidth = 0.8 + point.pressure * 1.6; ctx.beginPath(); ctx.moveTo(previous.x * canvas.clientWidth, previous.y * canvas.clientHeight); ctx.lineTo(point.x * canvas.clientWidth, point.y * canvas.clientHeight); ctx.stroke(); ctx.shadowBlur = 0; if (kind !== "move") { ctx.fillStyle = "rgba(255,245,205,.95)"; ctx.beginPath(); ctx.arc(point.x * canvas.clientWidth, point.y * canvas.clientHeight, 2.2, 0, Math.PI * 2); ctx.fill(); } } }
   };
