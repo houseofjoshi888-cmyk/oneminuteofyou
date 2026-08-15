@@ -2,7 +2,6 @@ import type { Metadata, Viewport } from "next";
 import { Cormorant_Garamond, DM_Mono, Manrope } from "next/font/google";
 import "./globals.css";
 import { Providers } from "./providers";
-import { SoundEffects } from "@/components/SoundEffects";
 
 const display = Cormorant_Garamond({ variable: "--font-display", subsets: ["latin"], weight: ["400", "500", "600"] });
 const sans = Manrope({ variable: "--font-sans", subsets: ["latin"], weight: ["400", "500", "600", "700"] });
@@ -24,5 +23,5 @@ export const metadata: Metadata = {
 export const viewport: Viewport = { width: "device-width", initialScale: 1, viewportFit: "cover", themeColor: "#030303" };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  return <html lang="en"><body className={`${display.variable} ${sans.variable} ${mono.variable}`}><Providers>{children}</Providers><SoundEffects /></body></html>;
+  return <html lang="en"><body className={`${display.variable} ${sans.variable} ${mono.variable}`}><Providers>{children}</Providers></body></html>;
 }
