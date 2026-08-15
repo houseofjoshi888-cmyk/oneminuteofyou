@@ -1,0 +1,7 @@
+import Link from "next/link";
+import { EditorialPage } from "@/components/EditorialPage";
+
+export default function HowItWorksPage() { return <EditorialPage eyebrow="FROM GESTURE TO PROVENANCE" title={<>One minute.<br/><em>Four stages.</em></>} intro="The experience runs in the browser. Your gesture is measured locally, converted into a deterministic seed, rendered through its Royal House, and prepared for minting on Base.">
+  <ol className="process-list"><li><b>01</b><div><h2>Record</h2><p>Move a pointer, stylus, or finger for sixty seconds. Both visible timers track the same recording clock.</p></div></li><li><b>02</b><div><h2>Measure</h2><p>The app derives normalized motion features such as distance, velocity, acceleration, curvature, pauses, turns, and coverage.</p></div></li><li><b>03</b><div><h2>Generate</h2><p>SHA-256 creates the reproducible seed. The seed selects a House and drives particle topology, colour, density, symmetry, focal point, and glow.</p></div></li><li><b>04</b><div><h2>Mint</h2><p>Connect a wallet, review the artwork and metadata, pin the still and living versions to permanent storage, then confirm the Base transaction.</p></div></li></ol>
+  <div className="editorial-actions"><Link className="primary-button" href="/generate">Create an artwork <span>↗</span></Link><Link className="secondary-button" href="/verify">Verify a seed</Link></div>
+ </EditorialPage>; }
