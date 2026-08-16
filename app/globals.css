@@ -269,8 +269,8 @@ body{font-family:var(--font-sans);font-size:15px;line-height:1.65;letter-spacing
 /* Homepage: pure black canvas behind the five-House particle artwork. */
 .reference-landing,.reference-shell,.reference-hero{background:#000!important}
 .reference-shell:before{display:none!important}
-.reference-art:after{background:linear-gradient(90deg,#000 0%,transparent 24%),linear-gradient(0deg,#000 0%,transparent 13%)}
-@media(max-width:700px){.reference-art:after{background:linear-gradient(180deg,#000 0%,transparent 24%),linear-gradient(0deg,#000 0%,transparent 8%)}}
+.reference-art:after{display:none!important;background:none!important}
+.reference-landing+.global-site-footer{background:#000}
 
 
 /* Certificate layout: every text block owns a row, so long titles never collide. */
