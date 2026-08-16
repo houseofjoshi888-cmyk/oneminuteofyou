@@ -17,5 +17,5 @@ const config = walletConnectProjectId
 
 export default function WalletProviders({ children }: { children: ReactNode }) {
   const [queryClient] = useState(() => new QueryClient());
-  return <WagmiProvider config={config}><QueryClientProvider client={queryClient}><RainbowKitProvider theme={darkTheme({ accentColor: "#d5ad52", accentColorForeground: "#080604", borderRadius: "small", fontStack: "system" })}>{children}</RainbowKitProvider></QueryClientProvider></WagmiProvider>;
+  return <WagmiProvider config={config}><QueryClientProvider client={queryClient}><RainbowKitProvider initialChain={base} modalSize="compact" theme={darkTheme({ accentColor: "#d5ad52", accentColorForeground: "#080604", borderRadius: "medium", fontStack: "system" })}>{children}</RainbowKitProvider></QueryClientProvider></WagmiProvider>;
 }

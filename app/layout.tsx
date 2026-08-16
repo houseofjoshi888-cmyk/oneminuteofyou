@@ -25,5 +25,5 @@ export const metadata: Metadata = {
 export const viewport: Viewport = { width: "device-width", initialScale: 1, viewportFit: "cover", themeColor: "#030303" };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  return <html lang="en"><body className={`${display.variable} ${sans.variable} ${mono.variable}`}><SiteHeader /><Providers>{children}</Providers><SiteFooter global /></body></html>;
+  return <html lang="en"><body className={`${display.variable} ${sans.variable} ${mono.variable}`}><Providers><SiteHeader />{children}<SiteFooter global /></Providers></body></html>;
 }

@@ -34,7 +34,7 @@ test("serves every product route", async () => {
   }
 });
 
-test("keeps deterministic NFT guarantees and direct reveal in source", async () => {
+test("keeps deterministic NFT guarantees, direct reveal, and global wallet access", async () => {
   const [simulation, seed, generate, provider, museum] = await Promise.all([
     readFile(new URL("../lib/simulation.ts", import.meta.url), "utf8"),
     readFile(new URL("../lib/seed.ts", import.meta.url), "utf8"),
@@ -47,5 +47,5 @@ test("keeps deterministic NFT guarantees and direct reveal in source", async () 
   assert.match(generate, /YOUR ONE-OF-ONE NFT/);
   assert.doesNotMatch(generate, /Prepare royal edition|SeedReveal/);
   assert.doesNotMatch(museum, /museumRecord/);
-  assert.doesNotMatch(provider, /WalletProviders|wagmi|rainbow/i);
+  assert.match(provider, /WalletProviders/);
 });
