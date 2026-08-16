@@ -10,7 +10,7 @@ import { useState, type ReactNode } from "react";
 
 const chains = [base] as const;
 const transports = { [base.id]: http() };
-const walletConnectProjectId = process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID;
+const walletConnectProjectId = process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || "e6c24a866fea178aaaf6b3b316a060aa";
 const config = walletConnectProjectId
   ? getDefaultConfig({ appName: "One Minute of You", projectId: walletConnectProjectId, chains, transports, ssr: true })
   : createConfig({ chains, connectors: [injected({ shimDisconnect: true })], transports, ssr: true, multiInjectedProviderDiscovery: false });
