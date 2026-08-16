@@ -39,33 +39,40 @@ export function LivingRenderer({ words, features, onReady }: { words: [number, n
         dustMask.width = formationLayer.width = 1024; dustMask.height = formationLayer.height = 1024;
         const dustContext = dustMask.getContext("2d"), formationContext = formationLayer.getContext("2d");
         if (!dustContext || !formationContext) throw new Error("Canvas unavailable");
-        const formationDuration = 10_000, holdDuration = 4_000, duration = formationDuration + holdDuration, waveDuration = 56_000;
+        const formationDuration = 10_000, holdDuration = 2_500, reverseDuration = 10_000, restDuration = 500;
+        const reverseStarts = formationDuration + holdDuration, reverseEnds = reverseStarts + reverseDuration, duration = reverseEnds + restDuration, waveDuration = 56_000;
         const dustCount = 14_000;
-        let revealedDust = 0, previousElapsed = 0;
+        let revealedDust = 0, removedDust = 0, previousElapsed = 0;
+        const paintDust = (from: number, to: number, reverse: boolean, operation: GlobalCompositeOperation) => {
+          dustContext.globalCompositeOperation = operation; dustContext.fillStyle = "#fff"; dustContext.beginPath();
+          for (let position = from; position < to; position++) {
+            const particle = reverse ? dustCount - 1 - position : position;
+            const index = ((Math.imul(particle, 73) + words[0]) >>> 0) % frame.tones.length;
+            const amount = ((Math.imul(particle + 1, 0x9e3779b1) ^ words[2]) >>> 0) / 4294967296;
+            const sx = frame.starts[index * 2], sy = frame.starts[index * 2 + 1], ex = frame.ends[index * 2], ey = frame.ends[index * 2 + 1];
+            const angle = (((Math.imul(particle + 11, 0x85ebca6b) ^ words[1]) >>> 0) / 4294967296) * Math.PI * 2;
+            const spread = 1.5 + (frame.tones[index] / 255) * 7;
+            const x = (sx + (ex - sx) * amount) * 1024 + Math.cos(angle) * spread;
+            const y = (sy + (ey - sy) * amount) * 1024 + Math.sin(angle) * spread;
+            const radius = 2.2 + (((Math.imul(particle + 29, 0xc2b2ae35) ^ words[3]) >>> 0) / 4294967296) * 6.8;
+            dustContext.moveTo(x + radius, y); dustContext.arc(x, y, radius, 0, Math.PI * 2);
+          }
+          dustContext.fill(); dustContext.globalCompositeOperation = "source-over";
+        };
         cycleStartedRef.current = performance.now(); setRenderError(false); setRendering(false); onReady?.(base);
         const draw = (now: number) => {
           if (!active) return; raf = requestAnimationFrame(draw); if (now - lastFrame < 33) return; lastFrame = now;
           ctx.globalCompositeOperation = "source-over"; ctx.globalAlpha = 1;
           if (livingRef.current) {
             const elapsed = (now - cycleStartedRef.current) % duration;
-            const rawFormation = Math.min(1, elapsed / formationDuration);
-            const formation = .5 - Math.cos(rawFormation * Math.PI) * .5;
-            if (elapsed < previousElapsed) { dustContext.clearRect(0, 0, 1024, 1024); revealedDust = 0; }
+            const forming = Math.min(1, elapsed / formationDuration), reversing = Math.min(1, Math.max(0, (elapsed - reverseStarts) / reverseDuration));
+            const formation = elapsed < reverseStarts ? .5 - Math.cos(forming * Math.PI) * .5 : .5 + Math.cos(reversing * Math.PI) * .5;
+            if (elapsed < previousElapsed) { dustContext.clearRect(0, 0, 1024, 1024); revealedDust = 0; removedDust = 0; }
             previousElapsed = elapsed;
-            const targetDust = Math.floor(formation * dustCount);
-            dustContext.fillStyle = "#fff"; dustContext.beginPath();
-            for (let particle = revealedDust; particle < targetDust; particle++) {
-              const index = ((Math.imul(particle, 73) + words[0]) >>> 0) % frame.tones.length;
-              const amount = ((Math.imul(particle + 1, 0x9e3779b1) ^ words[2]) >>> 0) / 4294967296;
-              const sx = frame.starts[index * 2], sy = frame.starts[index * 2 + 1], ex = frame.ends[index * 2], ey = frame.ends[index * 2 + 1];
-              const angle = (((Math.imul(particle + 11, 0x85ebca6b) ^ words[1]) >>> 0) / 4294967296) * Math.PI * 2;
-              const spread = 1.5 + (frame.tones[index] / 255) * 7;
-              const x = (sx + (ex - sx) * amount) * 1024 + Math.cos(angle) * spread;
-              const y = (sy + (ey - sy) * amount) * 1024 + Math.sin(angle) * spread;
-              const radius = 2.2 + (((Math.imul(particle + 29, 0xc2b2ae35) ^ words[3]) >>> 0) / 4294967296) * 6.8;
-              dustContext.moveTo(x + radius, y); dustContext.arc(x, y, radius, 0, Math.PI * 2);
-            }
-            dustContext.fill(); revealedDust = targetDust;
+            const targetDust = elapsed < formationDuration ? Math.floor(formation * dustCount) : dustCount;
+            if (revealedDust < targetDust) { paintDust(revealedDust, targetDust, false, "source-over"); revealedDust = targetDust; }
+            const targetRemoved = elapsed >= reverseStarts ? Math.floor(reversing * dustCount) : 0;
+            if (removedDust < targetRemoved) { paintDust(removedDust, targetRemoved, true, "destination-out"); removedDust = targetRemoved; }
             ctx.fillStyle = house.background; ctx.fillRect(0, 0, canvas.width, canvas.height);
             const wavePhase = ((now - cycleStartedRef.current) % waveDuration) / waveDuration * Math.PI * 2;
             const direction = words[1] % 2 ? 1 : -1;
@@ -77,8 +84,8 @@ export function LivingRenderer({ words, features, onReady }: { words: [number, n
             const waveScale = 1.008 + Math.sin(wavePhase) * motion.scale;
             const rotation = config.algorithm === "Sacred Geometry" ? wavePhase * .0015 * direction : Math.sin(wavePhase * .61) * motion.rotate * direction;
             formationContext.clearRect(0, 0, 1024, 1024); formationContext.globalCompositeOperation = "source-over"; formationContext.drawImage(base, 0, 0); formationContext.globalCompositeOperation = "destination-in"; formationContext.drawImage(dustMask, 0, 0); formationContext.globalCompositeOperation = "source-over";
-            ctx.save(); ctx.translate(512 + Math.sin(wavePhase) * motion.driftX, 512 + Math.cos(wavePhase * .73) * motion.driftY); ctx.rotate(rotation); ctx.scale(waveScale, waveScale); ctx.drawImage(rawFormation >= 1 ? base : formationLayer, -512, -512); ctx.restore();
-            const cycle = Math.min(1, elapsed / formationDuration); ctx.globalCompositeOperation = "lighter";
+            ctx.save(); ctx.translate(512 + Math.sin(wavePhase) * motion.driftX, 512 + Math.cos(wavePhase * .73) * motion.driftY); ctx.rotate(rotation); ctx.scale(waveScale, waveScale); ctx.drawImage(formation >= .999 ? base : formationLayer, -512, -512); ctx.restore();
+            const cycle = formation; ctx.globalCompositeOperation = "lighter";
             for (let i = words[0] % 41; i < frame.tones.length; i += 211) {
               const phase = (cycle + ((i * 2654435761) >>> 0) / 4294967296) % 1;
               const pulse = Math.pow(Math.max(0, Math.sin(phase * Math.PI)), 12); if (pulse < .025) continue;
