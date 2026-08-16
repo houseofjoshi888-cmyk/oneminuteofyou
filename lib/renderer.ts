@@ -147,7 +147,7 @@ function drawHouseSigil(ctx: CanvasRenderingContext2D, frame: ParticleFrame, con
 
 export function drawMathematicalHousePattern(ctx: CanvasRenderingContext2D, frame: ParticleFrame, config: RenderConfig): void {
   const palette = config.palette || [config.gold];
-  const s = config.size, composition = frame.composition % 13;
+  const s = config.size, composition = frame.composition % 18;
   const seed = (index: number) => frame.tones[index % frame.tones.length] / 255;
   const phase = seed(31) * Math.PI * 2;
   const order = 3 + Math.floor(seed(47) * 7 + frame.kinetics.curvature * 5 + frame.kinetics.acceleration * 3);
@@ -205,7 +205,7 @@ export function drawMathematicalHousePattern(ctx: CanvasRenderingContext2D, fram
     const particles: Array<[number, number, number]> = [];
     const dust: Array<[number, number, number]> = [];
     ctx.strokeStyle = `rgb(${color[0]},${color[1]},${color[2]})`;
-    ctx.globalAlpha = .045 + seed(band + 7) * .075;
+    ctx.globalAlpha = .075 + seed(band + 7) * .105;
     ctx.lineWidth = s * (.00016 + seed(band + 13) * .00032);
     ctx.shadowColor = ctx.strokeStyle; ctx.shadowBlur = s * .0015;
     ctx.beginPath();
@@ -248,8 +248,29 @@ export function drawMathematicalHousePattern(ctx: CanvasRenderingContext2D, fram
       } else if (composition === 11) {
         const angle = Math.PI * (1.08 + t * .84) + phase * .08, r = .06 + (band / Math.max(1, bandCount - 1)) * .48 * motionScale;
         x += Math.cos(angle) * r; y = .84 + Math.sin(angle) * r * (.7 + seed(15) * .25);
-      } else {
+      } else if (composition === 12) {
         x = .04 + t * .92; y = .08 + (band / Math.max(1, bandCount - 1)) * .84 + Math.sin(t * Math.PI * (4 + order) + phase + band * .29) * (.018 + seed(16) * .045) * curveScale;
+      } else if (composition === 13) {
+        const cells = 3 + Math.floor(seed(211) * 3), cell = band % (cells * cells), column = cell % cells, row = Math.floor(cell / cells);
+        const localAngle = a * (2 + order % 4) + phase + band * .23, radius = (.035 + seed(cell + 223) * .055) * (.25 + Math.sin(t * Math.PI));
+        x = (column + .5) / cells + Math.cos(localAngle) * radius; y = (row + .5) / cells + Math.sin(localAngle) * radius;
+      } else if (composition === 14) {
+        const vertical = band % 2 === 0, wave = Math.sin(t * Math.PI * (3 + order) + phase + band * .31) * (.025 + seed(227) * .055);
+        x = vertical ? .08 + (band / Math.max(1, bandCount - 1)) * .84 + wave : .06 + t * .88;
+        y = vertical ? .06 + t * .88 : .08 + (band / Math.max(1, bandCount - 1)) * .84 + wave;
+      } else if (composition === 15) {
+        const panes = 5 + order, segment = Math.floor(t * panes), local = (t * panes) % 1;
+        const a1 = phase + segment * Math.PI * 2 / panes, a2 = phase + (segment + 1) * Math.PI * 2 / panes, inner = .08 + Math.abs(offset) * .12, outer = .24 + seed(segment + 233) * .17;
+        const r = local < .5 ? inner + local * 2 * (outer - inner) : outer - (local - .5) * 2 * (outer - inner);
+        const angle = a1 + (a2 - a1) * local; x += Math.cos(angle) * r; y += Math.sin(angle) * r;
+      } else if (composition === 16) {
+        const contour = .075 + (band / Math.max(1, bandCount - 1)) * .34, ripple = Math.sin(a * (3 + order) + phase + band * .13) * (.015 + frame.kinetics.curvature * .035);
+        x += Math.cos(a + phase * .08) * (contour + ripple); y += Math.sin(a + phase * .08) * (contour * (.65 + seed(239) * .45) + ripple);
+      } else {
+        const position = t * (traceCount - 1), index = Math.floor(position), next = Math.min(traceCount - 1, index + 1), amount = position - index;
+        const tx = frame.trace[index * 2] + (frame.trace[next * 2] - frame.trace[index * 2]) * amount, ty = frame.trace[index * 2 + 1] + (frame.trace[next * 2 + 1] - frame.trace[index * 2 + 1]) * amount;
+        const ribbon = offset * (.08 + frame.kinetics.speed * .08), normal = Math.atan2(frame.trace[next * 2 + 1] - frame.trace[index * 2 + 1], frame.trace[next * 2] - frame.trace[index * 2]) + Math.PI / 2;
+        x = tx + Math.cos(normal) * ribbon + Math.cos(a * 3 + phase) * .008; y = ty + Math.sin(normal) * ribbon + Math.sin(a * 2 + phase) * .008;
       }
       [x, y] = houseWarp(x, y, t, offset);
       x = Math.max(.018, Math.min(.982, x)); y = Math.max(.018, Math.min(.982, y));
@@ -269,7 +290,7 @@ export function drawMathematicalHousePattern(ctx: CanvasRenderingContext2D, fram
     }
     ctx.stroke();
     ctx.fillStyle = `rgb(${color[0]},${color[1]},${color[2]})`;
-    ctx.globalAlpha = .42 + seed(band + 179) * .48;
+    ctx.globalAlpha = .58 + seed(band + 179) * .4;
     ctx.shadowBlur = s * (.0035 + seed(band + 181) * .005);
     ctx.beginPath();
     for (const [x, y, radius] of particles) { ctx.moveTo(x + radius, y); ctx.arc(x, y, radius, 0, Math.PI * 2); }
@@ -366,5 +387,5 @@ export function renderArtwork(canvas: HTMLCanvasElement, frame: ParticleFrame, c
   ctx.shadowBlur = 0;
   ctx.globalCompositeOperation = "source-over";
   const vignette = ctx.createRadialGradient(config.size / 2, config.size / 2, config.size * .25, config.size / 2, config.size / 2, config.size * .72);
-  vignette.addColorStop(0, "transparent"); vignette.addColorStop(1, "rgba(0,0,0,.52)"); ctx.fillStyle = vignette; ctx.fillRect(0, 0, config.size, config.size);
+  vignette.addColorStop(0, "transparent"); vignette.addColorStop(1, "rgba(0,0,0,.32)"); ctx.fillStyle = vignette; ctx.fillRect(0, 0, config.size, config.size);
 }

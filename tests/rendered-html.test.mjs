@@ -27,11 +27,20 @@ test("server-renders the finished collection homepage", async () => {
 });
 
 test("serves every product route", async () => {
-  for (const pathname of ["/generate", "/mint", "/collection", "/legal", "/artwork/1"]) {
+  for (const pathname of ["/generate", "/mint", "/collection", "/legal", "/staking", "/artwork/1"]) {
     const response = await render(pathname);
     assert.equal(response.status, 200, `${pathname} should render`);
     assert.match(response.headers.get("content-type") ?? "", /^text\/html\b/i);
   }
+});
+
+test("locks collection administration and treasury policy in the contract source", async () => {
+  const contract = await readFile(new URL("../contracts/OneMinuteOfYou.sol", import.meta.url), "utf8");
+  assert.match(contract, /ADMIN_WALLET\s*=\s*0x69Bf308E5e30158072Cf9d2c6DE7b86F5Ae2f9B4/);
+  assert.match(contract, /HOUSE_WALLET\s*=\s*payable\(0x6736d2eA9807297F0e56967361B9410854B86a5f\)/);
+  assert.match(contract, /ROYALTY_BPS\s*=\s*700/);
+  assert.match(contract, /HOUSE_WALLET\.call\{value:\s*amount\}/);
+  assert.doesNotMatch(contract, /withdraw\(address payable recipient\)/);
 });
 
 test("keeps deterministic NFT guarantees, direct reveal, and global wallet access", async () => {

@@ -2,7 +2,7 @@ import type { Address } from "viem";
 
 export const BASE_CHAIN_ID = 8453;
 export const MAX_SUPPLY = 500;
-export const RENDERER_VERSION = "OMOY-KG-3.2.0";
+export const RENDERER_VERSION = "OMOY-KG-3.3.0";
 const configuredAddress = process.env.NEXT_PUBLIC_ONE_MINUTE_NFT_ADDRESS;
 export const oneMinuteContractAddress = configuredAddress && /^0x[a-fA-F0-9]{40}$/.test(configuredAddress) ? configuredAddress as Address : undefined;
 export const oneMinuteContractAbi = [
@@ -16,6 +16,9 @@ export const oneMinuteContractAbi = [
   { type: "function", name: "tokenURI", stateMutability: "view", inputs: [{ name: "tokenId", type: "uint256" }], outputs: [{ type: "string" }] },
   { type: "function", name: "mintOneMinute", stateMutability: "payable", inputs: [{ name: "seedHash", type: "bytes32" }, { name: "metadataURI", type: "string" }], outputs: [{ type: "uint256" }] },
   { type: "function", name: "ownerMint", stateMutability: "nonpayable", inputs: [{ name: "collector", type: "address" }, { name: "seedHash", type: "bytes32" }, { name: "metadataURI", type: "string" }], outputs: [{ type: "uint256" }] },
+  { type: "function", name: "withdraw", stateMutability: "nonpayable", inputs: [], outputs: [] },
+  { type: "function", name: "HOUSE_WALLET", stateMutability: "view", inputs: [], outputs: [{ type: "address" }] },
+  { type: "function", name: "ROYALTY_BPS", stateMutability: "view", inputs: [], outputs: [{ type: "uint96" }] },
 ] as const;
 
 export function openSeaItemUrl(tokenId: number | bigint) {

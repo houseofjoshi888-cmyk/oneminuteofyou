@@ -21,7 +21,7 @@ export function compositionFor(words: readonly number[], features: InteractionFe
     ^ Math.floor(features.averageCurvature * 4_093)
     ^ Math.floor(features.coverage * 1_009);
   const variation = (folded ^ motion) + science.symmetry * 31 + science.harmonicOrder * 17 + Math.floor(science.entropy * 10_000) + features.taps * 13 + features.pauses * 19;
-  return variation % 13;
+  return variation % COMPOSITIONS.length;
 }
 
 export function simulateParticles(words: [number, number, number, number], features: InteractionFeatures, config: SimulationConfig = DEFAULT_SIMULATION): ParticleFrame {
