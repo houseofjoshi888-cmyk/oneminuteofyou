@@ -35,8 +35,13 @@ export function LivingRenderer({ words, features, onReady }: { words: [number, n
 
         canvas.width = 1024; canvas.height = 1024;
         const ctx = canvas.getContext("2d"); if (!ctx) throw new Error("Canvas unavailable");
+        const dustMask = document.createElement("canvas"), formationLayer = document.createElement("canvas");
+        dustMask.width = formationLayer.width = 1024; dustMask.height = formationLayer.height = 1024;
+        const dustContext = dustMask.getContext("2d"), formationContext = formationLayer.getContext("2d");
+        if (!dustContext || !formationContext) throw new Error("Canvas unavailable");
         const formationDuration = 10_000, holdDuration = 4_000, duration = formationDuration + holdDuration, waveDuration = 56_000;
-        const revealX = 512 + ((words[0] >>> 8) % 161) - 80, revealY = 512 + ((words[2] >>> 9) % 161) - 80;
+        const dustCount = 14_000;
+        let revealedDust = 0, previousElapsed = 0;
         cycleStartedRef.current = performance.now(); setRenderError(false); setRendering(false); onReady?.(base);
         const draw = (now: number) => {
           if (!active) return; raf = requestAnimationFrame(draw); if (now - lastFrame < 33) return; lastFrame = now;
@@ -44,8 +49,23 @@ export function LivingRenderer({ words, features, onReady }: { words: [number, n
           if (livingRef.current) {
             const elapsed = (now - cycleStartedRef.current) % duration;
             const rawFormation = Math.min(1, elapsed / formationDuration);
-            const formation = 1 - Math.pow(1 - rawFormation, 3);
-            const revealRadius = 18 + formation * 790;
+            const formation = .5 - Math.cos(rawFormation * Math.PI) * .5;
+            if (elapsed < previousElapsed) { dustContext.clearRect(0, 0, 1024, 1024); revealedDust = 0; }
+            previousElapsed = elapsed;
+            const targetDust = Math.floor(formation * dustCount);
+            dustContext.fillStyle = "#fff"; dustContext.beginPath();
+            for (let particle = revealedDust; particle < targetDust; particle++) {
+              const index = ((Math.imul(particle, 73) + words[0]) >>> 0) % frame.tones.length;
+              const amount = ((Math.imul(particle + 1, 0x9e3779b1) ^ words[2]) >>> 0) / 4294967296;
+              const sx = frame.starts[index * 2], sy = frame.starts[index * 2 + 1], ex = frame.ends[index * 2], ey = frame.ends[index * 2 + 1];
+              const angle = (((Math.imul(particle + 11, 0x85ebca6b) ^ words[1]) >>> 0) / 4294967296) * Math.PI * 2;
+              const spread = 1.5 + (frame.tones[index] / 255) * 7;
+              const x = (sx + (ex - sx) * amount) * 1024 + Math.cos(angle) * spread;
+              const y = (sy + (ey - sy) * amount) * 1024 + Math.sin(angle) * spread;
+              const radius = 2.2 + (((Math.imul(particle + 29, 0xc2b2ae35) ^ words[3]) >>> 0) / 4294967296) * 6.8;
+              dustContext.moveTo(x + radius, y); dustContext.arc(x, y, radius, 0, Math.PI * 2);
+            }
+            dustContext.fill(); revealedDust = targetDust;
             ctx.fillStyle = house.background; ctx.fillRect(0, 0, canvas.width, canvas.height);
             const wavePhase = ((now - cycleStartedRef.current) % waveDuration) / waveDuration * Math.PI * 2;
             const direction = words[1] % 2 ? 1 : -1;
@@ -56,9 +76,8 @@ export function LivingRenderer({ words, features, onReady }: { words: [number, n
               : { driftX: 1.2, driftY: 1.2, rotate: .003, scale: .004 };
             const waveScale = 1.008 + Math.sin(wavePhase) * motion.scale;
             const rotation = config.algorithm === "Sacred Geometry" ? wavePhase * .0015 * direction : Math.sin(wavePhase * .61) * motion.rotate * direction;
-            ctx.save(); ctx.beginPath(); ctx.arc(revealX, revealY, revealRadius, 0, Math.PI * 2); ctx.clip();
-            ctx.translate(512 + Math.sin(wavePhase) * motion.driftX, 512 + Math.cos(wavePhase * .73) * motion.driftY); ctx.rotate(rotation); ctx.scale(waveScale, waveScale); ctx.drawImage(base, -512, -512); ctx.restore();
-            const glow = ctx.createRadialGradient(revealX,revealY,Math.max(0,revealRadius-90),revealX,revealY,revealRadius+42); glow.addColorStop(0,"transparent"); glow.addColorStop(.68,`${house.primary}08`); glow.addColorStop(.86,`${house.secondary}22`); glow.addColorStop(1,"transparent"); ctx.globalCompositeOperation="screen";ctx.globalAlpha=.7;ctx.fillStyle=glow;ctx.fillRect(0,0,1024,1024);
+            formationContext.clearRect(0, 0, 1024, 1024); formationContext.globalCompositeOperation = "source-over"; formationContext.drawImage(base, 0, 0); formationContext.globalCompositeOperation = "destination-in"; formationContext.drawImage(dustMask, 0, 0); formationContext.globalCompositeOperation = "source-over";
+            ctx.save(); ctx.translate(512 + Math.sin(wavePhase) * motion.driftX, 512 + Math.cos(wavePhase * .73) * motion.driftY); ctx.rotate(rotation); ctx.scale(waveScale, waveScale); ctx.drawImage(rawFormation >= 1 ? base : formationLayer, -512, -512); ctx.restore();
             const cycle = Math.min(1, elapsed / formationDuration); ctx.globalCompositeOperation = "lighter";
             for (let i = words[0] % 41; i < frame.tones.length; i += 211) {
               const phase = (cycle + ((i * 2654435761) >>> 0) / 4294967296) % 1;
@@ -66,7 +85,6 @@ export function LivingRenderer({ words, features, onReady }: { words: [number, n
               const travel = .5 - .5 * Math.cos(phase * Math.PI * 2);
               const x = (frame.starts[i * 2] + (frame.ends[i * 2] - frame.starts[i * 2]) * travel) * canvas.width;
               const y = (frame.starts[i * 2 + 1] + (frame.ends[i * 2 + 1] - frame.starts[i * 2 + 1]) * travel) * canvas.height;
-              if (Math.hypot(x - revealX, y - revealY) > revealRadius + 12) continue;
               ctx.globalAlpha = pulse * .62; ctx.fillStyle = i % 3 ? house.secondary : house.primary; ctx.shadowColor = house.primary; ctx.shadowBlur = canvas.width * .009;
               ctx.beginPath(); ctx.arc(x, y, canvas.width * (.0007 + pulse * .0011), 0, Math.PI * 2); ctx.fill();
             }
