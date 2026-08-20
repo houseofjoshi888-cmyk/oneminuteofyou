@@ -1,0 +1,7 @@
+import { EditorialPage } from "@/components/EditorialPage";
+export default function LicencePage(){return <EditorialPage eyebrow="NFT ARTWORK LICENCE · EFFECTIVE 20 AUGUST 2026" title={<>Own the token.<br/><em>Respect the work.</em></>} intro="This licence explains the personal and commercial rights attached to a legitimately owned One Minute of You NFT.">
+  <section><h2>Collector rights</h2><p>While you own the NFT, you receive a worldwide, non-exclusive licence to display its associated artwork and use it in personal profiles, virtual galleries, and physical displays.</p></section>
+  <section><h2>Limited commercial use</h2><p>You may use the individual artwork connected to your token in merchandise and promotional material associated with you or your collection, provided the use is lawful and does not imply endorsement by The House of Joshi.</p></section>
+  <section><h2>Rights retained</h2><p>The renderer, source code, collection name, trademarks, logos, House system, website, and artwork not attached to your token remain protected. You may not reproduce the collection as a competing NFT project or claim authorship of the generative system.</p></section>
+  <section><h2>Transfer</h2><p>The licence follows lawful ownership of the NFT and ends for the previous holder when the token is transferred. Blockchain ownership records determine the current licensee.</p></section>
+ </EditorialPage>}

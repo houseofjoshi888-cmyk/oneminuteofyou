@@ -7,6 +7,7 @@ import { createConfig, http, WagmiProvider } from "wagmi";
 import { base } from "wagmi/chains";
 import { injected } from "wagmi/connectors";
 import { useState, type ReactNode } from "react";
+import { WalletAnalytics } from "./WalletAnalytics";
 
 const chains = [base] as const;
 const transports = { [base.id]: http() };
@@ -17,5 +18,5 @@ const config = walletConnectProjectId
 
 export default function WalletProviders({ children }: { children: ReactNode }) {
   const [queryClient] = useState(() => new QueryClient());
-  return <WagmiProvider config={config}><QueryClientProvider client={queryClient}><RainbowKitProvider initialChain={base} modalSize="compact" theme={darkTheme({ accentColor: "#d5ad52", accentColorForeground: "#080604", borderRadius: "medium", fontStack: "system" })}>{children}</RainbowKitProvider></QueryClientProvider></WagmiProvider>;
+  return <WagmiProvider config={config}><QueryClientProvider client={queryClient}><RainbowKitProvider initialChain={base} modalSize="compact" theme={darkTheme({ accentColor: "#d5ad52", accentColorForeground: "#080604", borderRadius: "medium", fontStack: "system" })}><WalletAnalytics/>{children}</RainbowKitProvider></QueryClientProvider></WagmiProvider>;
 }

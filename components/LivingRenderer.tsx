@@ -41,7 +41,8 @@ export function LivingRenderer({ words, features, onReady }: { words: [number, n
         if (!dustContext || !formationContext) throw new Error("Canvas unavailable");
         const formationDuration = 10_000, holdDuration = 2_500, reverseDuration = 10_000, restDuration = 500;
         const reverseStarts = formationDuration + holdDuration, reverseEnds = reverseStarts + reverseDuration, duration = reverseEnds + restDuration, waveDuration = 56_000;
-        const dustCount = 14_000;
+        const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        const dustCount = navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 4 ? 7_000 : 14_000;
         let revealedDust = 0, removedDust = 0, previousElapsed = 0;
         const paintDust = (from: number, to: number, reverse: boolean, operation: GlobalCompositeOperation) => {
           dustContext.globalCompositeOperation = operation; dustContext.fillStyle = "#fff"; dustContext.beginPath();
@@ -60,6 +61,7 @@ export function LivingRenderer({ words, features, onReady }: { words: [number, n
           dustContext.fill(); dustContext.globalCompositeOperation = "source-over";
         };
         cycleStartedRef.current = performance.now(); setRenderError(false); setRendering(false); onReady?.(base);
+        if (reducedMotion) { ctx.drawImage(base,0,0); return; }
         const draw = (now: number) => {
           if (!active) return; raf = requestAnimationFrame(draw); if (now - lastFrame < 33) return; lastFrame = now;
           ctx.globalCompositeOperation = "source-over"; ctx.globalAlpha = 1;

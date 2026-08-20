@@ -6,7 +6,7 @@ import { formatEther, isAddress, isHex } from "viem";
 import { useAccount, useBalance, useReadContract, useSwitchChain, useWriteContract } from "wagmi";
 import { base } from "wagmi/chains";
 import { ADMIN_WALLET, HOUSE_WALLET, SECONDARY_ROYALTY_BPS, isAdminWallet } from "@/lib/access";
-import { oneMinuteContractAbi, oneMinuteContractAddress } from "@/lib/contract";
+import { oneMinuteContractAbi, oneMinuteContractAddress, RENDERER_VERSION_CODE } from "@/lib/contract";
 
 export function AdminAirdrop() {
   const { address } = useAccount();
@@ -15,6 +15,8 @@ export function AdminAirdrop() {
   const [collector, setCollector] = useState("");
   const [seedHash, setSeedHash] = useState("");
   const [metadataURI, setMetadataURI] = useState("");
+  const [traitsHash, setTraitsHash] = useState("");
+  const [houseIndex, setHouseIndex] = useState(0);
   const [message, setMessage] = useState("");
   const owner = useReadContract({ address: oneMinuteContractAddress, abi: oneMinuteContractAbi, functionName: "owner", query: { enabled: Boolean(oneMinuteContractAddress && isAdminWallet(address)) } });
   const treasuryBalance = useBalance({ address: oneMinuteContractAddress, chainId: base.id, query: { enabled: Boolean(oneMinuteContractAddress && isAdminWallet(address)), refetchInterval: 12_000 } });
@@ -22,11 +24,11 @@ export function AdminAirdrop() {
   const isContractOwner = Boolean(authorized && owner.data && owner.data.toLowerCase() === ADMIN_WALLET.toLowerCase());
 
   const airdrop = async () => {
-    if (!oneMinuteContractAddress || !isContractOwner || !isAddress(collector) || !isHex(seedHash, { strict: true }) || seedHash.length !== 66 || !/^ipfs:\/\/.+/.test(metadataURI)) { setMessage("Enter a valid collector, 32-byte seed, and IPFS metadata URI."); return; }
+    if (!oneMinuteContractAddress || !isContractOwner || !isAddress(collector) || !isHex(seedHash, { strict: true }) || seedHash.length !== 66 || !isHex(traitsHash,{strict:true}) || traitsHash.length!==66 || !/^ipfs:\/\/.+/.test(metadataURI)) { setMessage("Enter a valid collector, seed, traits hash, and IPFS metadata URI."); return; }
     setMessage("");
     try {
       await switchChainAsync({ chainId: base.id });
-      const hash = await writeContractAsync({ address: oneMinuteContractAddress, abi: oneMinuteContractAbi, functionName: "ownerMint", args: [collector as `0x${string}`, seedHash as `0x${string}`, metadataURI], chainId: base.id });
+      const hash = await writeContractAsync({ address: oneMinuteContractAddress, abi: oneMinuteContractAbi, functionName: "ownerMint", args: [collector as `0x${string}`, seedHash as `0x${string}`, houseIndex, traitsHash as `0x${string}`, RENDERER_VERSION_CODE, metadataURI], chainId: base.id });
       setMessage(`Airdrop submitted: ${hash}`);
     } catch { setMessage("Airdrop was not completed. Confirm the Base network and transaction in the administrator wallet."); }
   };
@@ -47,6 +49,6 @@ export function AdminAirdrop() {
     if (!oneMinuteContractAddress) return <section className="admin-card"><p className="eyebrow"><span /> DEPLOYMENT READY</p><h2>Contract configuration.</h2><dl className="admin-ledger"><div><dt>Contract owner</dt><dd>{ADMIN_WALLET}</dd></div><div><dt>House treasury</dt><dd>{HOUSE_WALLET}</dd></div><div><dt>Secondary royalty</dt><dd>{SECONDARY_ROYALTY_BPS / 100}% · ERC-2981</dd></div></dl><p className="mint-note">Deploy the contract from this wallet, verify it on Base, then configure its address to unlock airdrops and treasury controls.</p></section>;
     if (owner.isLoading) return <p className="mint-note">Verifying administrator authority on Base…</p>;
     if (!isContractOwner) return <p className="action-error">The configured contract is not owned by the authorized administrator wallet. Controls remain locked.</p>;
-    return <div className="admin-console"><section className="admin-card treasury-card"><p className="eyebrow"><span /> HOUSE TREASURY</p><h2>Primary proceeds.</h2><dl className="admin-ledger"><div><dt>Destination</dt><dd>{HOUSE_WALLET}</dd></div><div><dt>Contract balance</dt><dd>{treasuryBalance.data ? `${formatEther(treasuryBalance.data.value)} ETH` : "Reading Base…"}</dd></div><div><dt>Secondary royalty</dt><dd>7% · marketplace support required</dd></div></dl><button className="secondary-button" onClick={withdraw} disabled={isPending || !treasuryBalance.data?.value}>Send balance to House wallet</button></section><section className="admin-card"><p className="eyebrow"><span /> OWNER-ONLY AIRDROP</p><h2>Grant a royal edition.</h2><label>Collector wallet<input value={collector} onChange={event => setCollector(event.target.value.trim())} placeholder="0x…" /></label><label>Unique SHA-256 seed<input value={seedHash} onChange={event => setSeedHash(event.target.value.trim())} placeholder="0x…" /></label><label>Pinned metadata URI<input value={metadataURI} onChange={event => setMetadataURI(event.target.value.trim())} placeholder="ipfs://…/metadata.json" /></label><small>Each seed can be minted once. The contract owner check and 500-token supply cap are enforced on-chain.</small><button className="primary-button" onClick={airdrop} disabled={isPending}>{isPending ? "Awaiting confirmation…" : "Airdrop on Base"}<span>↗</span></button>{message && <p className="mint-note">{message}</p>}</section></div>;
+    return <div className="admin-console"><section className="admin-card treasury-card"><p className="eyebrow"><span /> HOUSE TREASURY</p><h2>Primary proceeds.</h2><dl className="admin-ledger"><div><dt>Destination</dt><dd>{HOUSE_WALLET}</dd></div><div><dt>Contract balance</dt><dd>{treasuryBalance.data ? `${formatEther(treasuryBalance.data.value)} ETH` : "Reading Base…"}</dd></div><div><dt>Mint price</dt><dd>0.025 ETH · Base</dd></div><div><dt>Secondary royalty</dt><dd>7% · marketplace support required</dd></div></dl><button className="secondary-button" onClick={withdraw} disabled={isPending || !treasuryBalance.data?.value}>Send balance to House wallet</button></section><section className="admin-card"><p className="eyebrow"><span /> OWNER-ONLY AIRDROP</p><h2>Grant a royal edition.</h2><label>Collector wallet<input value={collector} onChange={event => setCollector(event.target.value.trim())} placeholder="0x…" /></label><label>Unique SHA-256 seed<input value={seedHash} onChange={event => setSeedHash(event.target.value.trim())} placeholder="0x…" /></label><label>Royal House<select value={houseIndex} onChange={event=>setHouseIndex(Number(event.target.value))}>{["Peridot","Ruby","Sapphire","Turquoise","Gold"].map((name,index)=><option value={index} key={name}>{name}</option>)}</select></label><label>Canonical traits hash<input value={traitsHash} onChange={event=>setTraitsHash(event.target.value.trim())} placeholder="0x…"/></label><label>Pinned metadata URI<input value={metadataURI} onChange={event => setMetadataURI(event.target.value.trim())} placeholder="ipfs://…/metadata.json" /></label><small>Each seed can be minted once. The contract owner check and 5,200-token supply cap are enforced on-chain.</small><button className="primary-button" onClick={airdrop} disabled={isPending}>{isPending ? "Awaiting confirmation…" : "Airdrop on Base"}<span>↗</span></button>{message && <p className="mint-note">{message}</p>}</section></div>;
   }}</ConnectButton.Custom>;
 }

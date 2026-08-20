@@ -1,0 +1,5 @@
+import { NextResponse } from "next/server";
+export const runtime="edge";
+const allowed=new Set(["recording_started","recording_completed","wallet_connected","mint_preparation_started","mint_preparation_failed","mint_submitted","mint_confirmed","mint_failed"]);
+const windows=new Map<string,{count:number;reset:number}>();
+export async function POST(request:Request){const ip=request.headers.get("cf-connecting-ip")||"anonymous",now=Date.now(),entry=windows.get(ip);if(!entry||entry.reset<now)windows.set(ip,{count:1,reset:now+60_000});else if(++entry.count>60)return new NextResponse(null,{status:429});try{const body=await request.json() as {event?:string;details?:unknown;path?:string;at?:string};if(!body.event||!allowed.has(body.event)||JSON.stringify(body).length>2_000)return NextResponse.json({error:"Invalid event"},{status:400});console.info(JSON.stringify({type:"omoy_product_event",event:body.event,path:String(body.path||"").slice(0,120),at:body.at,details:body.details}));return new NextResponse(null,{status:204})}catch{return NextResponse.json({error:"Invalid JSON"},{status:400})}}

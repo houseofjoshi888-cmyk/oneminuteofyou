@@ -39,6 +39,12 @@ test("locks collection administration and treasury policy in the contract source
   assert.match(contract, /ADMIN_WALLET\s*=\s*0x69Bf308E5e30158072Cf9d2c6DE7b86F5Ae2f9B4/);
   assert.match(contract, /HOUSE_WALLET\s*=\s*payable\(0x6736d2eA9807297F0e56967361B9410854B86a5f\)/);
   assert.match(contract, /ROYALTY_BPS\s*=\s*700/);
+  assert.match(contract, /MAX_SUPPLY\s*=\s*5_200/);
+  assert.match(contract, /MINT_PRICE\s*=\s*0\.025 ether/);
+  assert.match(contract, /function airdrop[\s\S]*onlyOwner/);
+  assert.match(contract, /function withdraw\(\) external onlyOwner/);
+  assert.match(contract, /block\.timestamp < mintStart/);
+  assert.match(contract, /mapping\(bytes32 => bool\) public seedMinted/);
   assert.match(contract, /HOUSE_WALLET\.call\{value:\s*amount\}/);
   assert.doesNotMatch(contract, /withdraw\(address payable recipient\)/);
 });

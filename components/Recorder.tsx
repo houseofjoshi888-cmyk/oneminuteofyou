@@ -2,6 +2,7 @@
 import { useCallback, useEffect, useRef, useState, type CSSProperties } from "react";
 import { Canvas } from "./Canvas";
 import { createRecording, normalizedPoint, type InteractionPoint, type Recording } from "@/lib/recorder";
+import { track } from "@/lib/telemetry";
 
 const DURATION = 60_000;
 interface RecorderProps { onComplete: (recording: Recording) => void; }
@@ -25,7 +26,7 @@ export function Recorder({ onComplete }: RecorderProps) {
     if (!active) return;
     setActive(false); cancelAnimationFrame(frame.current);
     const canvas = canvasRef.current;
-    if (canvas) onComplete(createRecording(points.current, DURATION, canvas.clientWidth, canvas.clientHeight, recordingNonce.current));
+    if (canvas) { track("recording_completed",{signals:points.current.length}); onComplete(createRecording(points.current, DURATION, canvas.clientWidth, canvas.clientHeight, recordingNonce.current)); }
   }, [active, onComplete]);
 
   useEffect(() => {
@@ -35,8 +36,9 @@ export function Recorder({ onComplete }: RecorderProps) {
   }, []);
 
   useEffect(() => { if (!active) return; const tick = () => { const next = Math.max(0, DURATION - (performance.now() - startedAt.current)); setRemaining(next); if (next <= 0) finish(); else frame.current = requestAnimationFrame(tick); }; frame.current = requestAnimationFrame(tick); return () => cancelAnimationFrame(frame.current); }, [active, finish]);
+  useEffect(()=>{if(!active)return;const protect=(event:BeforeUnloadEvent)=>{event.preventDefault()};const resume=()=>{if(document.visibilityState==="visible"&&performance.now()-startedAt.current>=DURATION)finish()};window.addEventListener("beforeunload",protect);document.addEventListener("visibilitychange",resume);return()=>{window.removeEventListener("beforeunload",protect);document.removeEventListener("visibilitychange",resume)}},[active,finish]);
 
-  const start = () => { points.current = []; cells.current.clear(); distance.current = 0; turns.current = 0; previousAngle.current = null; recordingNonce.current = crypto.randomUUID?.() || `${Date.now()}-${performance.now()}`; setSampleCount(0); setMetrics({ coverage:0, distance:0, velocity:0, turns:0 }); const canvas = canvasRef.current; const ctx = canvas?.getContext("2d"); if (canvas && ctx) ctx.clearRect(0, 0, canvas.clientWidth, canvas.clientHeight); startedAt.current = performance.now(); setRemaining(DURATION); setActive(true); };
+  const start = () => { track("recording_started"); points.current = []; cells.current.clear(); distance.current = 0; turns.current = 0; previousAngle.current = null; recordingNonce.current = crypto.randomUUID?.() || `${Date.now()}-${performance.now()}`; setSampleCount(0); setMetrics({ coverage:0, distance:0, velocity:0, turns:0 }); const canvas = canvasRef.current; const ctx = canvas?.getContext("2d"); if (canvas && ctx) ctx.clearRect(0, 0, canvas.clientWidth, canvas.clientHeight); startedAt.current = performance.now(); setRemaining(DURATION); setActive(true); };
   const capture = (event: React.PointerEvent<HTMLCanvasElement>, kind: "move" | "down" | "up") => {
     if (!active) return; const canvas = canvasRef.current; if (!canvas) return;
     if (kind === "down") { try { canvas.setPointerCapture(event.pointerId); } catch { /* Some embedded mobile browsers do not expose pointer capture. */ } }
