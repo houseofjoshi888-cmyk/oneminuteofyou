@@ -1,9 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // The experience is entirely browser-side. Static export lets Vercel serve
-  // the Vinext/Vite output without looking for a standard `.next` directory.
-  output: "export",
+  // Sites serves the Vinext application through its Cloudflare Worker so all
+  // 5,200 token routes remain dynamic without generating duplicate HTML files.
 };
 
 export default nextConfig;
