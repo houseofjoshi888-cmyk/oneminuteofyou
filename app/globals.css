@@ -380,4 +380,18 @@ img,svg,canvas,video,iframe{max-width:100%}
   .result-copy h2{overflow-wrap:anywhere;text-wrap:balance}
   .royal-house-card,.provenance-seal,.science-signature,.stats,.base-mint{min-width:0;max-width:100%}
   .hash{overflow-wrap:anywhere;word-break:break-word}
+  .certificate-share,.certificate-share.is-open{display:grid;width:100%;gap:12px}
+  .certificate-share-trigger{width:100%;min-height:48px}
+  .share-sheet{width:100%;max-width:100%;margin:0;overflow:hidden;border-radius:10px}
+  .share-card{grid-template-columns:34px minmax(0,1fr);padding:20px 16px;column-gap:10px;row-gap:7px}
+  .share-card>small{font-size:6px;line-height:1.45}
+  .share-card>i{font-size:24px}
+  .share-card>p{margin-top:12px;font-size:6px;line-height:1.4}
+  .share-card>h3{font-size:clamp(25px,8vw,32px);line-height:1;overflow-wrap:anywhere}
+  .share-card>em{font-size:19px;line-height:1.1;overflow-wrap:anywhere}
+  .share-card>b,.share-card>span{max-width:100%;overflow-wrap:anywhere}
+  .share-message{font-size:10px;line-height:1.6}
+  .share-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+  .share-actions button{width:100%;min-height:44px;padding:10px 8px;font-size:7px}
 }
+@media(max-width:350px){.share-actions{grid-template-columns:1fr}.share-card{grid-template-columns:28px minmax(0,1fr);padding-inline:13px}.share-card>h3{font-size:24px}}
