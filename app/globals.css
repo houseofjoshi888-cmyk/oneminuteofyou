@@ -364,3 +364,17 @@ img,svg,canvas,video,iframe{max-width:100%}
   .studio-timer>strong{font-size:36px}
   .studio-timer>em{font-size:7px}
 }
+
+/* Artwork results are static and open with the complete image visible on phones. */
+.living-panel canvas{animation:none!important;transition:none!important;transform:none!important}
+.living-panel .living-toggle{display:none!important}
+@media(max-width:600px){
+  .result-page{padding:12px 10px max(28px,env(safe-area-inset-bottom))}
+  .result-grid{display:grid;grid-template-columns:minmax(0,1fr);gap:0;border:1px solid #665736}
+  .result-grid>.art-panel{width:100%;height:auto!important;aspect-ratio:1;position:relative!important;top:auto!important;padding:0!important;border:0!important;border-bottom:1px solid #574a31!important}
+  .result-grid>.art-panel canvas{width:100%;height:100%;object-fit:contain;box-shadow:none;transform:none}
+  .result-copy{min-width:0;padding:28px 20px}
+  .result-copy h2{overflow-wrap:anywhere;text-wrap:balance}
+  .royal-house-card,.provenance-seal,.science-signature,.stats,.base-mint{min-width:0;max-width:100%}
+  .hash{overflow-wrap:anywhere;word-break:break-word}
+}

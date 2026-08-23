@@ -25,6 +25,7 @@ export default function GeneratePage() {
   const complete = useCallback(async (recording: Recording) => {
     const features = analyzeRecording(recording); const seed = await seedFromFeatures(features); const value = { features, ...seed };
     sessionStorage.setItem("one-minute-result", JSON.stringify(value)); localStorage.setItem("one-minute-latest", JSON.stringify(value)); setResult(value);
+    requestAnimationFrame(() => window.scrollTo({ top: 0, left: 0, behavior: "auto" }));
   }, []);
   const house = result ? royalHouseFromWords(result.words) : null; const rarity = result ? royalRarity(result.hash, result.features.coverage + result.features.directionEntropy + result.features.pressureMean) : null;
   const metadata = useMemo(() => result ? createMetadata(result.hash, result.features, DEFAULT_SIMULATION) : undefined, [result]);
