@@ -15,7 +15,7 @@ export function LivingRenderer({ words, features, onReady }: { words: [number, n
     try {
       const frame = simulateParticles(words, features, isSurfaceComposition(compositionFor(words, features)) ? SURFACE_SIMULATION : PREVIEW_SIMULATION);
       const house = royalHouseFromWords(words);
-      const config = { ...renderConfigForHouse(words, 1024), lineAlpha: .78, lineWidth: 1.45 };
+      const config = { ...renderConfigForHouse(words, 1024), lineAlpha: .34, lineWidth: .82 };
       const generated = document.createElement("canvas");
       renderArtwork(generated, frame, config);
 
@@ -27,8 +27,8 @@ export function LivingRenderer({ words, features, onReady }: { words: [number, n
       context.fillRect(0, 0, 1024, 1024);
       drawMathematicalHousePattern(context, frame, config);
       context.save();
-      context.globalCompositeOperation = "screen";
-      context.globalAlpha = 1;
+      context.globalCompositeOperation = "source-over";
+      context.globalAlpha = .72;
       context.drawImage(generated, 0, 0);
       context.restore();
       onReady?.(canvas);
