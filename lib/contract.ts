@@ -2,7 +2,7 @@ import type { Address } from "viem";
 
 export const BASE_CHAIN_ID = 8453;
 export const MAX_SUPPLY = 5_200;
-export const MINT_PRICE_WEI = 25_000_000_000_000_000n;
+export const MINT_PRICE_WEI = BigInt("25000000000000000");
 export const RENDERER_VERSION = "OMOY-KG-3.3.0";
 export const RENDERER_VERSION_CODE = 330;
 const configuredAddress = process.env.NEXT_PUBLIC_ONE_MINUTE_NFT_ADDRESS;
