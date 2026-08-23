@@ -1,5 +1,5 @@
 "use client";
-/* eslint-disable @next/next/no-img-element -- Static Sites deployment serves these local hero assets directly. */
+/* eslint-disable @next/next/no-img-element -- The legacy hidden nav uses a local brand mark. */
 import Link from "next/link";
 import { SiteFooter } from "@/components/SiteFooter";
 
@@ -15,7 +15,6 @@ export function HomeExperience(){return <main className="reference-landing">
     </nav>
     <section className="reference-hero">
       <div className="reference-copy"><span>✣</span><h1>YOU ARE<br/>THE ORIGINAL<br/>ALGORITHM.</h1><hr/><p>Record one minute of movement.<br/>We transform it into generative art.<br/>You own it forever.</p><div className="reference-actions"><Link href="/generate">START YOUR MINUTE <b>→</b></Link></div></div>
-      <div className="reference-art" aria-label="The five Royal Houses converging in luminous particles"><img src="/five-houses-convergence.png" alt="Peridot, Ruby, Sapphire, Turquoise, and Gold particle forms converging" /></div>
     </section>
   </div>
   <SiteFooter />

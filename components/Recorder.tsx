@@ -69,5 +69,6 @@ export function Recorder({ onComplete }: RecorderProps) {
       <p>{sampleCount.toLocaleString()} SIGNALS<br/>CAPTURED LOCALLY</p>
     </aside>
     <div className={`studio-wave ${active ? "is-playing" : ""}`} style={{"--wave-progress":`${elapsedPercent}%`} as CSSProperties} aria-label={active ? `Recording signal, ${clock} remaining` : "Recording signal ready"}><span>{active ? `LIVE SIGNAL · ${clock}` : "SIGNAL READY · 01:00"}</span>{Array.from({length:64},(_,i)=><i key={i} style={{height:`${7 + ((i * 17) % 31)}px`,"--bar-delay":`${-(i%11)*0.07}s`} as CSSProperties}/>)}</div>
+    {!active ? <button className="record-button studio-mobile-record" onClick={start}>START RECORDING</button> : <button className="record-button stop studio-mobile-record" onClick={finish}>STOP RECORDING</button>}
   </div>;
 }
