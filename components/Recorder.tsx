@@ -51,6 +51,7 @@ export function Recorder({ onComplete }: RecorderProps) {
   const clock = `${String(Math.floor(totalSeconds / 60)).padStart(2,"0")}:${String(totalSeconds % 60).padStart(2,"0")}`;
   const elapsedPercent = Math.min(100, Math.max(0, ((DURATION - remaining) / DURATION) * 100));
   return <div className="studio-stage studio-reference-stage">
+    <p className="recording-privacy"><b>PRIVATE BY DESIGN</b> Raw movement remains on this device. Only derived traits and the deterministic seed are prepared for NFT metadata.</p>
     <aside className="studio-timer">
       <small>YOU HAVE</small><strong>{clock}</strong><span>SECONDS LEFT</span>
       <em className={active ? "is-active" : ""}>{active ? "RECORDING" : "READY"}</em>

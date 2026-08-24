@@ -11,7 +11,7 @@ export function SiteHeader() {
       <Link href="/houses">Houses</Link>
       <Link href="/gallery">Gallery</Link>
       <Link href="/my-collection">My collection</Link>
-      <Link href="/staking">Staking</Link>
+      <Link href="/before-you-mint">Before mint</Link>
     </nav>
     <div className="global-header-actions"><Link href="/generate">Create</Link><WalletButton /></div>
   </header>;
